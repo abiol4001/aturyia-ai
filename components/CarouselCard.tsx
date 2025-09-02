@@ -9,7 +9,7 @@ const CarouselCard = ({name, discount, Icon, iconTitle, iconFooter, desc, desc2,
           <div className="rounded-xl bg-red-500 p-2.5">
             <Icon className="h-10 w-10 text-white" />
           </div>
-          {discount && <div className="py-1 px-2 rounded-md bg-amber-500 animate-pulse">
+          {discount && <div className="py-1 px-2 rounded-lg bg-amber-500 animate-pulse">
             <p className="text-xs text-white">{discount}</p>
           </div>}
         </div>

@@ -121,6 +121,19 @@
   }
 }
 
+/* Custom Tabs Styling */
+.custom-tabs [role="tablist"] {
+  @apply bg-transparent border-none;
+}
+
+.custom-tabs [role="tab"][data-state="active"] {
+  @apply bg-amber-500 text-white shadow-md border-none;
+}
+
+.custom-tabs [role="tab"] {
+  @apply data-[state=active]:shadow-none ;
+}
+
 .h-full-carousel .carousel .slider,
 .h-full-carousel .carousel .slider .slide {
   height: 100%;

@@ -10,15 +10,15 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
-    { name: 'AI Agents', href: '/ai-agents' },
-    { name: 'How it Works', href: '/how-it-works' },
-    { name: 'Integrations', href: '/integrations' },
-    { name: 'Solutions', href: '/solutions' },
-    { name: 'Pricing', href: '/pricing' },
+    { name: 'AI Agents', href: '#ai-agents' },
+    { name: 'How it Works', href: '#how-it-works' },
+    { name: 'Integrations', href: '#integrations' },
+    { name: 'Solutions', href: '#solutions' },
+    { name: 'Pricing', href: '#pricing' },
   ];
 
   return (
-    <nav className="bg-orange-50 shadow-xl sticky top-0 z-50">
+    <nav className="bg-orange-50/80 backdrop-blur-sm shadow-xl sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-center h-18">
           {/* Logo */}
@@ -32,15 +32,15 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
+            <div className="ml-10 flex items-center space-x-8 h-[40px]">
               {navLinks.map((link) => (
-                <Link
+                <a
                   key={link.name}
                   href={link.href}
-                  className="text-gray-600 hover:text-gray-900 hover:underline px-3 py-2 text-sm font-medium transition-colors duration-300"
+                  className="text-gray-600  px-3 py-2 text-sm font-medium hover:text-amber-500 hover:border-b-2 hover:border-b-amber-500 transition-all duration-300 rounded-xs hover:font-semibold hover:bg-amber-500/5"
                 >
-                  {link.name}
-                </Link>
+                    {link.name}
+                </a>
               ))}
             </div>
           </div>
@@ -53,8 +53,8 @@ const Navbar = () => {
             >
               Sign in
             </Link>
-            <Button asChild>
-              <Link href="#" className="bg-gradient-to-r from-orange-500 to-orange-300 text-white">Get Demo</Link>
+            <Button asChild className='bg-amber-500 hover:bg-amber-600 transition-colors duration-200'>
+              <Link href="#" className=" text-white">Get Demo</Link>
             </Button>
           </div>
 
@@ -91,18 +91,18 @@ const Navbar = () => {
               </a>
             ))}
             <div className="border-t border-gray-200 pt-4 pb-3">
-              <a
-                href="/signin"
+              <Link
+                href="/login"
                 className="text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium transition-colors duration-200"
                 onClick={() => setIsOpen(false)}
               >
                 Sign in
-              </a>
+              </Link>
               <div className="px-3 py-2">
                 <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
-                  <a href="/demo" onClick={() => setIsOpen(false)}>
+                  <Link href="/demo" onClick={() => setIsOpen(false)}>
                     Get Demo
-                  </a>
+                  </Link>
                 </Button>
               </div>
             </div>
