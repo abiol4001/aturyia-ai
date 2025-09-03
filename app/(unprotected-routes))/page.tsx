@@ -29,7 +29,7 @@ export default function Home() {
   return (
     <div className="bg-amber-50 ">
       {/* AI Agents section */}
-      <section className="bg-amber-600 h-[calc(100vh-72px)] py-4 px-4 md:px-14 lg:px-24" id="ai-agents">
+      <section className="bg-amber-600  py-4 px-4 md:px-14 lg:px-24" id="ai-agents">
         <p className="text-white text-base text-center">Deploy pre-built agents or deploy custom solutions for every department</p>
         <div className="relative h-[90%] text-left">
           <Carousel
@@ -120,11 +120,11 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col items-center md:flex-row md:items-start gap-14 mt-10  mx-auto md:px-20">
-          <div className="bg-white rounded-lg w-1/2 lg:w-full  p-4 md:p-10 shadow-xl">
+          <div className="bg-white rounded-lg w-full  p-4 md:p-10 shadow-xl">
             <div className="flex justify-between items-center">
-              <h3 className="text-xl font-bold">Popular Integrations</h3>
-              <div className="py-2 px-4 rounded-2xl bg-amber-500 border  flex item-center justify-center gap-x-1 w-fit mx-auto">
-                <p className="text-xs text-white font-semibold">Most Used</p>
+              <h3 className="text:lg md:text-xl font-bold">Popular Integrations</h3>
+              <div className="py-2 px-4 rounded-2xl bg-amber-500 border  w-fit">
+                <p className="text-[10px] md:text-xs text-white font-semibold">Most Used</p>
               </div>
             </div>
             <div className="h-0.5 w-full bg-gray-100 opacity-60 my-4" />
@@ -132,7 +132,7 @@ export default function Home() {
             <IntegrationCards />
           </div>
 
-          <div className="flex flex-col w-1/2 lg:w-full gap-y-9">
+          <div className="flex md:flex-col  gap-x-5 w-full gap-y-9">
             <div className="bg-white rounded-lg flex flex-col gap-y-3 w-full p-4 md:p-10 shadow-xl">
 
               <div className="bg-amber-500 h-12 w-12 rounded-xl flex items-center  justify-center">

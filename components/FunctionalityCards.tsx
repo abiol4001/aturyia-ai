@@ -17,15 +17,15 @@ const FunctionalityCards = () => {
     },
   ]
   return (
-    <div className="flex flex-col md:flex-row mt-10 md:mt-16 gap-x-14 w-fit mx-auto relative">
-      <hr className="absolute top-1/2 left-1/2 transform -translate-x-1/2 w-full h-0.5 " />
+    <div className="flex flex-col md:flex-row mt-10 md:mt-16 gap-x-14 gap-y-10 w-fit mx-auto relative">
+      <hr className="invisible md:visible absolute top-1/2 left-1/2 transform -translate-x-1/2 w-full h-0.5 " />
       {appFunctions.map((func, index) => (
         <div key={index} className="flex flex-col gap-y-4 items-center z-40">
           <div className="relative w-full flex justify-center items-center">
             <div className="bg-orange-500 h-12 w-12 rounded-full flex items-center justify-center text-white font-extrabold">
               {index + 1}
             </div>
-            {index+1 !== appFunctions.length  && <div className="absolute -right-4 flex items-center gap-x-2">
+            {index+1 !== appFunctions.length  && <div className="invisible md:visible absolute -right-4 flex items-center gap-x-2">
               <div className=" w-10 h-0.5 rounded-2xl bg-orange-500" />
               <ArrowRight className=" text-orange-500 h-4 w-4 " strokeWidth={3} />
             </div>}

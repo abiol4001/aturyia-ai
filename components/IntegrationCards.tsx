@@ -32,7 +32,7 @@ const IntegrationCards = () => {
   return (
     <div className="flex flex-wrap gap-4 justify-center">
       {integrationList.map((integration, index) => (
-        <div key={index} className="bg-white rounded-xl shadow-xl p-4 md:p-6 flex flex-col gap-5 items-center cursor-pointer transition-transform duration-300 hover:scale-105 shine-effect w-full lg:w-[130px]">
+        <div key={index} className="bg-white rounded-xl shadow-xl p-4 md:p-6 flex flex-col gap-5 items-center cursor-pointer transition-transform duration-300 hover:scale-105 shine-effect w-[130px]">
           <div className="bg-amber-500 rounded-xl p-4 w-fit">
             {integration.icon}
           </div>

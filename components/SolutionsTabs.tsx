@@ -71,7 +71,7 @@ const SolutionsTabs = () => {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="sdr-agent">
-        <div className="border-2 border-t-amber-500 rounded-xl bg-white max-w-5xl min-h-[calc(100vh-72px)] p-4 md:p-10">
+        <div className="border-2 border-t-amber-500 rounded-xl bg-white max-w-5xl p-4 md:p-10">
           <div className="py-2 px-3 rounded-xl bg-amber-500 w-fit mx-auto">
             <p className="text-xs text-white uppercase font-medium">Sales</p>
           </div>
@@ -84,7 +84,7 @@ const SolutionsTabs = () => {
 
           <div className='mt-10 flex flex-wrap gap-4'>
             {solutionsCardData.map((card, index) => (
-              <div key={index} className='bg-amber-500/10 p-4 md:px-5 md:py-6 rounded-xl max-w-[300px] flex gap-3'>
+              <div key={index} className='bg-amber-500/10 p-4 md:px-5 md:py-6 rounded-xl w-full md:max-w-[300px] flex gap-3'>
                 <div className='rounded-full h-8 w-8 bg-amber-500 text-white font-bold flex justify-center items-center shrink-0'>
                   {index + 1}.
                 </div>
@@ -103,7 +103,7 @@ const SolutionsTabs = () => {
         </div>
       </TabsContent>
       <TabsContent value="custom-agent">
-        <div className="border-2 border-t-amber-500 rounded-xl bg-white max-w-5xl min-h-[calc(100vh-72px)] p-4 md:p-10">
+        <div className="border-2 border-t-amber-500 rounded-xl bg-white max-w-5xl p-4 md:p-10">
           <div className="py-2 px-3 rounded-xl bg-purple-500 w-fit mx-auto">
             <p className="text-xs text-white uppercase font-medium">CUSTOM</p>
           </div>
@@ -116,7 +116,7 @@ const SolutionsTabs = () => {
 
           <div className='mt-10 flex flex-wrap gap-4'>
             {customAgentData.map((card, index) => (
-              <div key={index} className='bg-amber-500/10 p-4 md:px-5 md:py-6 rounded-xl max-w-[300px] flex gap-3'>
+              <div key={index} className='bg-amber-500/10 p-4 md:px-5 md:py-6 rounded-xl w-full md:max-w-[300px] flex gap-3'>
                 <div className='rounded-full h-8 w-8 bg-amber-500 text-white font-bold flex justify-center items-center shrink-0'>
                   {index + 1}.
                 </div>

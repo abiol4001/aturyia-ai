@@ -115,13 +115,13 @@ const SignupForm: React.FC<SignupFormProps> = ({
       return
     }
 
-    
-    const { error: profileError } = await supabase.from("users").insert([
+    // Step 2: Insert profile data (linked by user.id)
+    const { error: profileError } = await supabase.from("profiles").insert([
       {
         id: user.id, // foreign key to auth.users
         first_name: data.firstName,
         last_name: data.lastName,
-        date_of_birth: new Date(data.dateOfBirth).toISOString().split("T")[0],
+        dob: data.dateOfBirth,
       },
     ])
 
