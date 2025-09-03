@@ -3,7 +3,7 @@ import React from 'react'
 
 const CarouselCard = ({name, discount, Icon, iconTitle, iconFooter, desc, desc2, footerDesc1, footerDesc2, footerScore1, footerScore2}: {name: string, discount: string, Icon: LucideIcon, iconTitle: string, iconFooter: string, desc: string, desc2: string, footerDesc1: string, footerDesc2: string, footerScore1: string, footerScore2: string}) => {
   return (
-    <div className="max-w-5xl mx-auto mt-16 p-4 md:p-20 rounded-lg shadow-2xl bg-white flex flex-col md:flex-row md:justify-between md:items-center h-[60%] text-left">
+    <div className="max-w-5xl mx-auto mt-10 p-4 md:p-20 rounded-lg shadow-2xl bg-white flex flex-col md:flex-row md:justify-between md:items-center text-left">
       <div className=" bg-white rounded-lg flex flex-col gap-y-8">
         <div className="flex items-center gap-4">
           <div className="rounded-xl bg-red-500 p-2.5">

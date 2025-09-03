@@ -1,14 +1,14 @@
 "use client"
 
-import { ArrowRight, Bot, Link, Settings, Target, Zap } from "lucide-react";
+import {  Bot, Link, Settings, Target, Zap } from "lucide-react";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from 'react-responsive-carousel';
 import React, { useState } from 'react';
 import CarouselCard from "@/components/CarouselCard";
-import IntegrationCard from "@/components/FunctionalityCards";
 import FunctionalityCards from "@/components/FunctionalityCards";
 import IntegrationCards from "@/components/IntegrationCards";
 import SolutionsTabs from "@/components/SolutionsTabs";
+import { Progress } from "@/components/ui/progress";
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -28,10 +28,71 @@ export default function Home() {
 
   return (
     <div className="bg-amber-50 ">
+
+      {/* Hero Section */}
+      <section>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20 py-20 px-4 md:px-14 lg:px-24">
+          <div className="w-1/2">
+            <h2 className="text-2xl md:text-5xl font-bold">
+              Hire your <br /> <span className="text-amber-500 block">AI Super Employees</span>
+            </h2>
+            <p>Grow your business faster with our AI agents that work 24/7 - <br className="hidden md:block" /><span> scaling without limits whilst lowering your costs.</span></p>
+          </div>
+
+          <div className="w-1/2 h-[400px] shadow-2xl border bg-amber-400 rounded-xl p-6 space-y-4">
+            <div className="w-full h-12 bg-orange-400 border border-gray-100 rounded-xl relative flex justify-between items-center px-4">
+              <div className="flex gap-2 items-center">
+                <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                <div className="h-2.5 w-2.5 rounded-full bg-yellow-500" />
+                <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+              </div>
+              <p className="font-semibold text-white">Aturiya AI  Dashboard</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="w-full border border-gray-100 rounded-xl h-full p-4 space-y-2.5 shadow-xl">
+                <div className="w-full border border-gray-100 rounded-xl flex gap-2 items-center text-white text-sm uppercase font-bold px-4 py-1">
+                  <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                  <p className="text-sm">Sales</p>
+                </div>
+                <p className="text-white font-extrabold">SDR Agent</p>
+                <div className="text-sm flex items-center gap-2">
+                  <p className="text-white font-semibold">Performance</p>
+                  <Progress value={85} className="[&>div]:bg-red-500" />
+                  <p className="text-red-600 font-semibold">85%</p>
+                </div>
+              </div>
+
+              <div className="w-full border border-gray-100 rounded-xl h-full p-4 space-y-2.5 shadow-xl">
+                <div className="w-full border border-gray-100 rounded-xl flex gap-2 items-center text-white text-sm uppercase font-bold px-4 py-1">
+                  <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                  <p className="text-sm">Custom</p>
+                </div>
+                <p className="text-white font-extrabold">Custom Agent</p>
+                <div className="text-sm flex items-center gap-2">
+                  <p className="text-white font-semibold">Performance</p>
+                  <Progress value={93} className="[&>div]:bg-red-500" />
+                  <p className="text-red-600 font-semibold">93%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* AI Agents section */}
-      <section className="bg-amber-600  py-4 px-4 md:px-14 lg:px-24" id="ai-agents">
-        <p className="text-white text-base text-center">Deploy pre-built agents or deploy custom solutions for every department</p>
-        <div className="relative h-[90%] text-left">
+      <section className="bg-amber-600  py-4 px-4 md:px-14 md:pb-24 md:py-14 relative" id="ai-agents">
+        <div className="py-2 px-3 rounded-2xl bg-white flex item-center justify-center gap-x-1 w-fit mx-auto">
+          <Bot className="text-amber-500 h-5 w-5" />
+          <div className="flex items-center justify-center">
+            <p className="text-xs text-black font-semibold">AI Agents</p>
+          </div>
+        </div>
+
+        <div className="text-center text-white w-fit mx-auto space-y-3 mt-5">
+          <h2 className="capitalize text-4xl font-bold ">Meet Your Specialised AI Workforce</h2>
+          <p className="">Deploy pre-built agents or deploy custom solutions for every department</p>
+        </div>
+        <div className=" text-left">
           <Carousel
             autoPlay
             infiniteLoop
@@ -69,7 +130,7 @@ export default function Home() {
               iconTitle="Custon Dashboard"
               iconFooter="" />
           </Carousel>
-          <div className="flex items-center justify-center absolute bottom-5 left-1/2 -translate-x-1/2 bg-gray-400 rounded-lg px-4 py-1.5 gap-x-2">
+          <div className="flex items-center justify-center absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-400 rounded-lg px-4 py-1.5 gap-x-2">
             <div className="w-24 h-1.5 flex items-center">
               {progressBar}
             </div>
@@ -88,6 +149,7 @@ export default function Home() {
             </ul>
           </div>
         </div>
+
       </section>
 
       {/* How it works section */}
@@ -170,7 +232,7 @@ export default function Home() {
 
         <div>
           <div>
-            
+
           </div>
 
           <SolutionsTabs />
