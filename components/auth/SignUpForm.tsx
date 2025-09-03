@@ -28,6 +28,7 @@ import { Eye, EyeOff, Mail, User, Lock, CalendarIcon } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { createClient } from '@/utils/supabase/client';
 
 // Zod validation schema
 const signupSchema = z.object({
@@ -51,9 +52,7 @@ const signupSchema = z.object({
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
     ),
   confirmPassword: z.string(),
-  dateOfBirth: z.date({
-    required_error: "Date of birth is required",
-  }),
+  dateOfBirth: z.date(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -85,12 +84,54 @@ const SignupForm: React.FC<SignupFormProps> = ({
       email: '',
       password: '',
       confirmPassword: '',
-      dateOfBirth: '',
+      dateOfBirth: undefined,
     },
+    mode: 'onBlur',
   });
 
-  const handleSubmit = (data: SignupFormValues) => {
+  const supabase = createClient()
+
+  const handleSubmit = async (data: SignupFormValues) => {
+    console.log('Form submitted with data:', data);
+    console.log('Form validation state:', form.formState.errors);
     onSubmit(data);
+
+    // Step 1: Create user in auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+    })
+
+    if (authError) {
+      console.log(authError.message)
+      // setLoading(false)
+      return
+    }
+
+    const user = authData.user
+    if (!user) {
+      console.log("Signup failed, no user returned.")
+      // setLoading(false)
+      return
+    }
+
+    
+    const { error: profileError } = await supabase.from("users").insert([
+      {
+        id: user.id, // foreign key to auth.users
+        first_name: data.firstName,
+        last_name: data.lastName,
+        date_of_birth: new Date(data.dateOfBirth).toISOString().split("T")[0],
+      },
+    ])
+
+    if (profileError) {
+      console.log(profileError.message)
+    } else {
+      alert("Signup successful 🎉")
+    }
+
+    // setLoading(false)
   };
 
   return (
@@ -232,7 +273,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
 
               <FormField
                 control={form.control}
-                name="dob"
+                name="dateOfBirth"
                 render={({ field }) => (
                   <FormItem className="flex flex-col ">
                     <FormLabel>Date of birth</FormLabel>

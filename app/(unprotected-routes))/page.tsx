@@ -91,7 +91,7 @@ export default function Home() {
       </section>
 
       {/* How it works section */}
-      <section className="h-[calc(100vh-72px)] py-10 md:py-14 px-4 md:px-14 lg:px-24 " id="how-it-works">
+      <section className="md:min-h-[calc(100vh-72px)] xl:h-fit py-10 md:py-14 px-4 md:px-14 lg:px-24 " id="how-it-works">
         <div className=" w-full md:w-[60%] shadow-xl bg-white mx-auto h-full md:h-[45%] rounded-xl p-4 md:p-10 flex flex-col gap-6">
           <div className="py-1 px-2 rounded-xl bg-amber-50 border border-amber-400 flex item-center justify-center gap-x-1 w-fit mx-auto">
             <Zap className="text-amber-500" />
@@ -106,7 +106,7 @@ export default function Home() {
       </section>
 
       {/* Integrations section */}
-      <section className="bg-amber-500 h-[calc(100vh-72px)] py-10 md:py-12 px-4 md:px-14 lg:px-24 space-y-4" id="integrations">
+      <section className="bg-amber-500 md:min-h-[calc(100vh-72px)] xl:h-fit py-10 md:py-12 px-4 md:px-14 lg:px-24 space-y-4" id="integrations">
         <div className="py-1.5 px-3 rounded-2xl bg-white flex item-center justify-center gap-x-1 w-fit mx-auto">
           <Link className="text-amber-500 h-6 w-6" />
           <div className="flex items-center justify-center">
@@ -119,8 +119,8 @@ export default function Home() {
           <p className="">Connect with 50+ popular business applications</p>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-14 mt-10  mx-auto md:px-20">
-          <div className="bg-white rounded-lg w-1/2 p-4 md:p-10 shadow-xl">
+        <div className="flex flex-col items-center md:flex-row md:items-start gap-14 mt-10  mx-auto md:px-20">
+          <div className="bg-white rounded-lg w-1/2 lg:w-full  p-4 md:p-10 shadow-xl">
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-bold">Popular Integrations</h3>
               <div className="py-2 px-4 rounded-2xl bg-amber-500 border  flex item-center justify-center gap-x-1 w-fit mx-auto">
@@ -132,7 +132,7 @@ export default function Home() {
             <IntegrationCards />
           </div>
 
-          <div className="flex flex-col w-full md:w-1/2 gap-y-9">
+          <div className="flex flex-col w-1/2 lg:w-full gap-y-9">
             <div className="bg-white rounded-lg flex flex-col gap-y-3 w-full p-4 md:p-10 shadow-xl">
 
               <div className="bg-amber-500 h-12 w-12 rounded-xl flex items-center  justify-center">
