@@ -33,7 +33,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <section>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20 py-16 px-4 md:px-14 lg:px-24">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20 pt-14 pb-10 px-4 md:px-14 lg:px-24">
           <div className="md:w-1/2 space-y-2">
             <h2 className="text-3xl text-center md:text-left md:text-5xl font-bold">
               Hire your <br /> <span className="text-amber-500 block">AI Super Employees</span>
@@ -160,7 +160,7 @@ export default function Home() {
       </section>
 
       {/* How it works section */}
-      <section className=" xl:h-fit py-10 md:py-14 px-4 md:px-14 lg:px-24 scroll-mt-[72px]" id="how-it-works">
+      <section className=" xl:h-fit py-10 md:py-24 px-4 md:px-14 lg:px-24 scroll-mt-[72px]" id="how-it-works">
         <div className=" w-full md:w-[60%] shadow-xl bg-white mx-auto h-full md:h-[45%] rounded-xl p-4 md:p-10 flex flex-col gap-6">
           <div className="py-1 px-2 rounded-xl bg-amber-50 border border-amber-400 flex item-center justify-center gap-x-1 w-fit mx-auto">
             <Zap className="text-amber-500" />
@@ -247,7 +247,7 @@ export default function Home() {
       </section>
 
       {/* Pricing section */}
-      <section className="bg-amber-500 py-14 md:py-24 md:py-12 px-4 md:px-14 lg:px-24 space-y-10 scroll-mt-[72px]" id="pricing">
+      <section className="bg-amber-500 py-14 md:py-24 px-4 md:px-14 lg:px-24 space-y-11 scroll-mt-[72px]" id="pricing">
 
         <div className="w-full flex justify-center ">
           <Button className="h-[52px] bg-white hover:bg-gradient-to-br from-slate-100 to-slate-50 shadow-lg rounded-full w-fit  text-black" >
@@ -256,22 +256,22 @@ export default function Home() {
           </Button>
         </div>
         <div className="text-center text-white space-y-5">
-          <h2 className="text-3xl md:text-5xl font-bold">Transform Your Business <br className="hidden lg:block" />Today</h2>
-          <p className="font-medium text-white">Join thousands of companies already using AI agents to drive growth and innovation</p>
+          <h2 className="text-3xl md:text-5xl font-bold leading-[60px]">Transform Your Business <br className="hidden lg:block" />Today</h2>
+          <p className="font-medium text-white leading-[30px]">Join thousands of companies already using AI agents to drive growth and <br className="hidden lg:block" /> innovation</p>
         </div>
 
-        <div className="max-w-3xl mx-auto flex justify-between">
-          <div className="rounded-full border-[0.5px] border-slate-300 bg-amber-400 p-3 flex gap-x-2 items-center w-fit">
-              <CheckCircle className="text-green-400 h-6 w-6" />
-              <p className="font-medium text-white text-sm">No credit card required</p>
+        <div className="max-w-3xl mx-auto flex flex-wrap justify-center md:justify-between">
+          <div className="rounded-full border-[0.5px] border-white/25 bg-gradient-to-r from-white/15 to-white/5 backdrop-blur-2xl p-3 flex gap-x-2 items-center w-fit shrink-0 shadow-xl">
+            <CheckCircle className="text-green-400 h-6 w-6 drop-shadow-md" />
+            <p className="font-medium text-white text-sm">No credit card required</p>
           </div>
-          <div className="rounded-full border-[0.5px] border-slate-300 p-3 flex gap-x-2 items-center w-fit">
-              <CheckCircle className="text-green-400 h-6 w-6" />
-              <p className="font-medium text-white text-sm">Cancel anytime</p>
+          <div className="rounded-full border-[0.5px] border-white/25 bg-gradient-to-r from-white/15 to-white/5 backdrop-blur-2xl p-3 flex gap-x-2 items-center w-fit shrink-0 shadow-xl">
+            <CheckCircle className="text-green-400 h-6 w-6 drop-shadow-md" />
+            <p className="font-medium text-white text-sm">Cancel anytime</p>
           </div>
-          <div className="rounded-full border-[0.5px] border-slate-300 p-3 flex gap-x-2 items-center w-fit">
-              <CheckCircle className="text-green-400 h-6 w-6" />
-              <p className="font-medium text-white text-sm">SOC2-ready infrastructure</p>
+          <div className="rounded-full border-[0.5px] border-white/25 bg-gradient-to-r from-white/15 to-white/5 backdrop-blur-2xl p-3 flex gap-x-2 items-center w-fit shrink-0 shadow-xl">
+            <CheckCircle className="text-green-400 h-6 w-6 drop-shadow-md" />
+            <p className="font-medium text-white text-sm">SOC2-ready infrastructure</p>
           </div>
         </div>
 

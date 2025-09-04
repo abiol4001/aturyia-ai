@@ -48,7 +48,7 @@ const InfiniteFeatureCards = () => {
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-slate-50 via-slate-50 to-transparent z-10"></div>
 
           {/* Infinite scrolling container */}
-          <div className="overflow-hidden py-4">
+          <div className="overflow-hidden py-2">
             <div
               className="flex gap-6 continuous-scroll"
               // onMouseEnter={(e) => e.target.style.animationPlayState = 'paused'}
@@ -59,7 +59,7 @@ const InfiniteFeatureCards = () => {
                   key={index}
                   className="flex-shrink-0 w-80 group"
                 >
-                  <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 h-full">
+                  <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 h-full">
                     {/* Icon with colored background */}
                     <div className={`w-12 h-12 bg-gradient-to-bl from-orange-600 to-amber-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
                       <div className="text-white">
