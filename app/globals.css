@@ -121,6 +121,10 @@
   }
 }
 
+html {
+  @apply scroll-smooth;
+}
+
 /* Custom Tabs Styling */
 .custom-tabs [role="tablist"] {
   @apply bg-transparent border-none;

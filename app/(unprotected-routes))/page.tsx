@@ -1,6 +1,6 @@
 "use client"
 
-import {  Bot, Link, Settings, Target, Zap } from "lucide-react";
+import {  Bot, CheckCircle, Link, Rocket, Settings, Target, Zap } from "lucide-react";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from 'react-responsive-carousel';
 import React, { useState } from 'react';
@@ -9,6 +9,8 @@ import FunctionalityCards from "@/components/FunctionalityCards";
 import IntegrationCards from "@/components/IntegrationCards";
 import SolutionsTabs from "@/components/SolutionsTabs";
 import { Progress } from "@/components/ui/progress";
+import InfiniteFeatureCards from "@/components/HeroSectionScroll";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -31,15 +33,15 @@ export default function Home() {
 
       {/* Hero Section */}
       <section>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20 py-20 px-4 md:px-14 lg:px-24">
-          <div className="w-1/2">
-            <h2 className="text-2xl md:text-5xl font-bold">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20 py-16 px-4 md:px-14 lg:px-24">
+          <div className="md:w-1/2 space-y-2">
+            <h2 className="text-3xl text-center md:text-left md:text-5xl font-bold">
               Hire your <br /> <span className="text-amber-500 block">AI Super Employees</span>
             </h2>
             <p>Grow your business faster with our AI agents that work 24/7 - <br className="hidden md:block" /><span> scaling without limits whilst lowering your costs.</span></p>
           </div>
 
-          <div className="w-1/2 h-[400px] shadow-2xl border bg-amber-400 rounded-xl p-6 space-y-4">
+          <div className=" w-full md:w-1/2 h-[400px] shadow-2xl border bg-amber-500 rounded-xl p-6 space-y-4">
             <div className="w-full h-12 bg-orange-400 border border-gray-100 rounded-xl relative flex justify-between items-center px-4">
               <div className="flex gap-2 items-center">
                 <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
@@ -50,10 +52,10 @@ export default function Home() {
             </div>
 
             <div className="space-y-4">
-              <div className="w-full border border-gray-100 rounded-xl h-full p-4 space-y-2.5 shadow-xl">
+              <div className="w-full border border-gray-100 bg-amber-400 rounded-xl h-full p-4 space-y-2.5 shadow-xl">
                 <div className="w-full border border-gray-100 rounded-xl flex gap-2 items-center text-white text-sm uppercase font-bold px-4 py-1">
                   <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                  <p className="text-sm">Sales</p>
+                  <p className="text-xs">Sales</p>
                 </div>
                 <p className="text-white font-extrabold">SDR Agent</p>
                 <div className="text-sm flex items-center gap-2">
@@ -66,7 +68,7 @@ export default function Home() {
               <div className="w-full border border-gray-100 rounded-xl h-full p-4 space-y-2.5 shadow-xl">
                 <div className="w-full border border-gray-100 rounded-xl flex gap-2 items-center text-white text-sm uppercase font-bold px-4 py-1">
                   <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                  <p className="text-sm">Custom</p>
+                  <p className="text-xs">Custom</p>
                 </div>
                 <p className="text-white font-extrabold">Custom Agent</p>
                 <div className="text-sm flex items-center gap-2">
@@ -75,12 +77,17 @@ export default function Home() {
                   <p className="text-red-600 font-semibold">93%</p>
                 </div>
               </div>
+        
             </div>
           </div>
         </div>
+
+        <InfiniteFeatureCards />
+
+
       </section>
       {/* AI Agents section */}
-      <section className="bg-amber-600  py-4 px-4 md:px-14 md:pb-24 md:py-14 relative" id="ai-agents">
+      <section className="bg-amber-600  py-4 px-4 md:px-14 md:pb-24 md:py-14 relative scroll-mt-[72px]" id="ai-agents">
         <div className="py-2 px-3 rounded-2xl bg-white flex item-center justify-center gap-x-1 w-fit mx-auto">
           <Bot className="text-amber-500 h-5 w-5" />
           <div className="flex items-center justify-center">
@@ -153,7 +160,7 @@ export default function Home() {
       </section>
 
       {/* How it works section */}
-      <section className="md:min-h-[calc(100vh-72px)] xl:h-fit py-10 md:py-14 px-4 md:px-14 lg:px-24 " id="how-it-works">
+      <section className=" xl:h-fit py-10 md:py-14 px-4 md:px-14 lg:px-24 scroll-mt-[72px]" id="how-it-works">
         <div className=" w-full md:w-[60%] shadow-xl bg-white mx-auto h-full md:h-[45%] rounded-xl p-4 md:p-10 flex flex-col gap-6">
           <div className="py-1 px-2 rounded-xl bg-amber-50 border border-amber-400 flex item-center justify-center gap-x-1 w-fit mx-auto">
             <Zap className="text-amber-500" />
@@ -168,7 +175,7 @@ export default function Home() {
       </section>
 
       {/* Integrations section */}
-      <section className="bg-amber-500 md:min-h-[calc(100vh-72px)] xl:h-fit py-10 md:py-12 px-4 md:px-14 lg:px-24 space-y-4" id="integrations">
+      <section className="bg-amber-500 xl:h-fit py-10 md:py-12 px-4 md:px-14 lg:px-24 space-y-4 scroll-mt-[72px]" id="integrations">
         <div className="py-1.5 px-3 rounded-2xl bg-white flex item-center justify-center gap-x-1 w-fit mx-auto">
           <Link className="text-amber-500 h-6 w-6" />
           <div className="flex items-center justify-center">
@@ -218,7 +225,7 @@ export default function Home() {
       </section>
 
       {/* Solutions section */}
-      <section className=" min-h-[calc(100vh-72px)] py-4 md:py-14 px-4 md:px-14 lg:px-24" id="solutions">
+      <section className=" py-4 md:py-14 px-4 md:px-14 lg:px-24 scroll-mt-[72px]" id="solutions">
         <div className=" w-full md:w-[60%] shadow-xl bg-white mx-auto h-full md:h-[45%] rounded-xl p-4 md:p-10 flex flex-col gap-6">
           <div className="py-1.5 px-3 rounded-xl bg-amber-50 border border-amber-400 flex item-center justify-center gap-x-1 w-fit mx-auto">
             <Target className="text-amber-500 h-4 w-4" />
@@ -237,6 +244,38 @@ export default function Home() {
 
           <SolutionsTabs />
         </div>
+      </section>
+
+      {/* Pricing section */}
+      <section className="bg-amber-500 py-14 md:py-24 md:py-12 px-4 md:px-14 lg:px-24 space-y-10 scroll-mt-[72px]" id="pricing">
+
+        <div className="w-full flex justify-center ">
+          <Button className="h-[52px] bg-white hover:bg-gradient-to-br from-slate-100 to-slate-50 shadow-lg rounded-full w-fit  text-black" >
+            <Rocket className="text-amber-500" />
+            Ready to Get Started?
+          </Button>
+        </div>
+        <div className="text-center text-white space-y-5">
+          <h2 className="text-3xl md:text-5xl font-bold">Transform Your Business <br className="hidden lg:block" />Today</h2>
+          <p className="font-medium text-white">Join thousands of companies already using AI agents to drive growth and innovation</p>
+        </div>
+
+        <div className="max-w-3xl mx-auto flex justify-between">
+          <div className="rounded-full border-[0.5px] border-slate-300 bg-amber-400 p-3 flex gap-x-2 items-center w-fit">
+              <CheckCircle className="text-green-400 h-6 w-6" />
+              <p className="font-medium text-white text-sm">No credit card required</p>
+          </div>
+          <div className="rounded-full border-[0.5px] border-slate-300 p-3 flex gap-x-2 items-center w-fit">
+              <CheckCircle className="text-green-400 h-6 w-6" />
+              <p className="font-medium text-white text-sm">Cancel anytime</p>
+          </div>
+          <div className="rounded-full border-[0.5px] border-slate-300 p-3 flex gap-x-2 items-center w-fit">
+              <CheckCircle className="text-green-400 h-6 w-6" />
+              <p className="font-medium text-white text-sm">SOC2-ready infrastructure</p>
+          </div>
+        </div>
+
+
       </section>
     </div>
   );
