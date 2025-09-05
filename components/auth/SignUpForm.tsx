@@ -30,6 +30,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
 
+
 // Zod validation schema
 const signupSchema = z.object({
   firstName: z
@@ -89,49 +90,71 @@ const SignupForm: React.FC<SignupFormProps> = ({
     mode: 'onBlur',
   });
 
-  const supabase = createClient()
+  // const supabase = createClient()
 
   const handleSubmit = async (data: SignupFormValues) => {
     console.log('Form submitted with data:', data);
     console.log('Form validation state:', form.formState.errors);
     onSubmit(data);
 
-    // Step 1: Create user in auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // await db.insert(users).values({
+    //   email: data.email,
+    //   firstName: data.firstName,
+    //   lastName: data.lastName,
+    //   password: data.password,
+    //   dateOfBirth: data.dateOfBirth.toISOString(),
+    // })
+
+    const res = await createUser({
       email: data.email,
-      password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        password: data.password,
+        dateOfBirth: new Date(data.dateOfBirth),
     })
 
-    if (authError) {
-      console.log(authError.message)
-      // setLoading(false)
-      return
-    }
+    // if (!res.success) {
+    //   alert(res.error || "Something went wrong")
+    // }
 
-    const user = authData.user
-    if (!user) {
-      console.log("Signup failed, no user returned.")
-      // setLoading(false)
-      return
-    }
+    // setIsLoading(false)
 
-    // Step 2: Insert profile data (linked by user.id)
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        id: user.id, // foreign key to auth.users
-        first_name: data.firstName,
-        last_name: data.lastName,
-        dob: data.dateOfBirth,
-      },
-    ])
+    // // Step 1: Create user in auth
+    // const { data: authData, error: authError } = await supabase.auth.signUp({
+    //   email: data.email,
+    //   password: data.password,
+    // })
 
-    if (profileError) {
-      console.log(profileError.message)
-    } else {
-      alert("Signup successful 🎉")
-    }
+    // if (authError) {
+    //   console.log(authError.message)
+    //   // setLoading(false)
+    //   return
+    // }
 
-    // setLoading(false)
+    // const user = authData.user
+    // if (!user) {
+    //   console.log("Signup failed, no user returned.")
+    //   // setLoading(false)
+    //   return
+    // }
+
+    // // Step 2: Insert profile data (linked by user.id)
+    // const { error: profileError } = await supabase.from("profiles").insert([
+    //   {
+    //     id: user.id, // foreign key to auth.users
+    //     first_name: data.firstName,
+    //     last_name: data.lastName,
+    //     dob: data.dateOfBirth,
+    //   },
+    // ])
+
+    // if (profileError) {
+    //   console.log(profileError.message)
+    // } else {
+    //   alert("Signup successful 🎉")
+    // }
+
+    // // setLoading(false)
   };
 
   return (

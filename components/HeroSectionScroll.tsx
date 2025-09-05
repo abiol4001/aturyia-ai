@@ -88,7 +88,7 @@ const InfiniteFeatureCards = () => {
       <style dangerouslySetInnerHTML={{
         __html: `
           .continuous-scroll {
-            animation: continuous-slide 10s linear infinite;
+            animation: continuous-slide 20s linear infinite;
           }
           
           @keyframes continuous-slide {
