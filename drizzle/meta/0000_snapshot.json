@@ -1,5 +1,5 @@
 {
-  "id": "163d59e0-4e13-4466-bc11-2224f7bdab8b",
+  "id": "fa6f1d3b-a0b7-46b8-90d7-105d5d9302a1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -8,9 +8,9 @@
       "name": "users",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
+        "auth_user_id": {
+          "name": "auth_user_id",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true
         },
@@ -31,12 +31,6 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
-        },
-        "password": {
-          "name": "password",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "date_of_birth": {
           "name": "date_of_birth",

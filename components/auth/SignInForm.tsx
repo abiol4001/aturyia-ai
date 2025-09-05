@@ -24,6 +24,9 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 // Zod validation schema
 const signinSchema = z.object({
@@ -54,6 +57,9 @@ const SigninForm: React.FC<SigninFormProps> = ({
   isLoading = false
 }) => {
   const [showPassword, setShowPassword] = React.useState(false);
+  const [isSigningIn, setIsSigningIn] = React.useState(false);
+  const router = useRouter();
+  const supabase = createClient();
 
   const form = useForm<SigninFormValues>({
     resolver: zodResolver(signinSchema),
@@ -63,8 +69,37 @@ const SigninForm: React.FC<SigninFormProps> = ({
     },
   });
 
-  const handleSubmit = (data: SigninFormValues) => {
+  const handleSubmit = async (data: SigninFormValues) => {
+    setIsSigningIn(true);
     onSubmit(data);
+
+    try {
+      // Sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (authError) {
+        console.error('Sign in error:', authError.message);
+        toast.error(authError.message || 'Sign in failed');
+        return;
+      }
+
+      if (!authData.user) {
+        toast.error('Sign in failed - no user returned');
+        return;
+      }
+
+      // Success - show toast and navigate to dashboard
+      toast.success('Welcome back!');
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsSigningIn(false);
+    }
   };
 
   return (
@@ -146,9 +181,9 @@ const SigninForm: React.FC<SigninFormProps> = ({
               <Button
                 type="submit"
                 className="w-full h-[52px]"
-                disabled={isLoading}
+                disabled={isLoading || isSigningIn}
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading || isSigningIn ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
           </Form>
@@ -168,7 +203,7 @@ const SigninForm: React.FC<SigninFormProps> = ({
               variant="outline"
               onClick={onGoogleSignIn}
               className="max-w-[300px] h-[52px] mx-auto rounded-lg"
-              disabled={isLoading}
+              disabled={isLoading || isSigningIn}
             >
               <svg
                 className="mr-2 h-4 w-4"
@@ -200,7 +235,7 @@ const SigninForm: React.FC<SigninFormProps> = ({
               variant="outline"
               onClick={onGithubSignIn}
               className="max-w-[300px] h-[52px] mx-auto rounded-lg"
-              disabled={isLoading}
+              disabled={isLoading || isSigningIn}
             >
               <svg
                 className="mr-2 h-4 w-4"

@@ -28,7 +28,10 @@ import { Eye, EyeOff, Mail, User, Lock, CalendarIcon } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { createUser } from '@/app/actions/user';
 import { createClient } from '@/utils/supabase/client';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 
 // Zod validation schema
@@ -76,6 +79,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
 }) => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const router = useRouter();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -90,71 +94,41 @@ const SignupForm: React.FC<SignupFormProps> = ({
     mode: 'onBlur',
   });
 
-  // const supabase = createClient()
+  const supabase = createClient()
 
   const handleSubmit = async (data: SignupFormValues) => {
     console.log('Form submitted with data:', data);
     console.log('Form validation state:', form.formState.errors);
     onSubmit(data);
 
-    // await db.insert(users).values({
-    //   email: data.email,
-    //   firstName: data.firstName,
-    //   lastName: data.lastName,
-    //   password: data.password,
-    //   dateOfBirth: data.dateOfBirth.toISOString(),
-    // })
+    
 
-    const res = await createUser({
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        password: data.password,
-        dateOfBirth: new Date(data.dateOfBirth),
+      password: data.password,
     })
 
-    // if (!res.success) {
-    //   alert(res.error || "Something went wrong")
-    // }
+    if (authError || !authData.user) {
+      console.error(authError?.message || 'Signup failed')
+      toast.error(authError?.message || 'Signup failed');
+      return
+    }
 
-    // setIsLoading(false)
+    const profileRes = await createUser({
+      authUserId: authData.user.id,
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      dateOfBirth: format(data.dateOfBirth, 'yyyy-MM-dd'),
+    })
+    if (!profileRes.success) {
+      toast.error(profileRes.error || 'Failed to save profile');
+      return;
+    }
 
-    // // Step 1: Create user in auth
-    // const { data: authData, error: authError } = await supabase.auth.signUp({
-    //   email: data.email,
-    //   password: data.password,
-    // })
-
-    // if (authError) {
-    //   console.log(authError.message)
-    //   // setLoading(false)
-    //   return
-    // }
-
-    // const user = authData.user
-    // if (!user) {
-    //   console.log("Signup failed, no user returned.")
-    //   // setLoading(false)
-    //   return
-    // }
-
-    // // Step 2: Insert profile data (linked by user.id)
-    // const { error: profileError } = await supabase.from("profiles").insert([
-    //   {
-    //     id: user.id, // foreign key to auth.users
-    //     first_name: data.firstName,
-    //     last_name: data.lastName,
-    //     dob: data.dateOfBirth,
-    //   },
-    // ])
-
-    // if (profileError) {
-    //   console.log(profileError.message)
-    // } else {
-    //   alert("Signup successful 🎉")
-    // }
-
-    // // setLoading(false)
+    toast.success('Account created successfully');
+    router.push('/dashboard');
+    
   };
 
   return (
