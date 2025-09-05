@@ -46,7 +46,7 @@ const signupSchema = z.object({
     .max(50, 'Last name must be less than 50 characters'),
   email: z
     .string()
-    .email('Please enter a valid email address')
+    .email({ message: 'Please enter a valid email address' })
     .min(1, 'Email is required'),
   password: z
     .string()
@@ -56,7 +56,9 @@ const signupSchema = z.object({
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
     ),
   confirmPassword: z.string(),
-  dateOfBirth: z.date(),
+  dateOfBirth: z
+    .date()
+    .refine((d) => !isNaN(d.getTime()), { message: 'Please select a valid date' }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -117,8 +119,8 @@ const SignupForm: React.FC<SignupFormProps> = ({
     const profileRes = await createUser({
       authUserId: authData.user.id,
       email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
+        firstName: data.firstName,
+        lastName: data.lastName,
       dateOfBirth: format(data.dateOfBirth, 'yyyy-MM-dd'),
     })
     if (!profileRes.success) {
@@ -132,37 +134,37 @@ const SignupForm: React.FC<SignupFormProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <Card className="shadow-lg">
-        <CardHeader className="space-y-1">
+    <div className="w-full">
+      <Card className="shadow-lg border-0">
+        <CardHeader className="space-y-1 px-6 pt-6 pb-4">
           <CardTitle className="text-2xl font-bold text-center">
             Create Your Account
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-sm">
             Join Agent Glow and automate your sales process
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6 pb-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 items-start">
                 <FormField
                   control={form.control}
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel className="text-sm font-medium">First Name</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             placeholder="John"
-                            className="pl-10"
+                            className="pl-10 h-11"
                             {...field}
                           />
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs text-red-500" />
                     </FormItem>
                   )}
                 />
@@ -171,18 +173,18 @@ const SignupForm: React.FC<SignupFormProps> = ({
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel className="text-sm font-medium">Last Name</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
                             placeholder="Doe"
-                            className="pl-10"
+                            className="pl-10 h-11"
                             {...field}
                           />
                         </div>
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs text-red-500" />
                     </FormItem>
                   )}
                 />
@@ -193,19 +195,19 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-sm font-medium">Email</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="john.doe@example.com"
                           type="email"
-                          className="pl-10"
+                          className="pl-10 h-11"
                           {...field}
                         />
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs text-red-500" />
                   </FormItem>
                 )}
               />
@@ -215,26 +217,26 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-sm font-medium">Password</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="Enter your password"
                           type={showPassword ? 'text' : 'password'}
-                          className="pl-10 pr-10"
+                          className="pl-10 pr-10 h-11"
                           {...field}
                         />
                         <button
                           type="button"
-                          className="absolute right-3 top-1.5 h-4 w-4 text-muted-foreground hover:text-foreground"
+                          className="absolute right-3 top-1.5 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? <EyeOff /> : <Eye />}
                         </button>
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs text-red-500" />
                   </FormItem>
                 )}
               />
@@ -244,26 +246,26 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel className="text-sm font-medium">Confirm Password</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="Confirm your password"
                           type={showConfirmPassword ? 'text' : 'password'}
-                          className="pl-10 pr-10"
+                          className="pl-10 pr-10 h-11"
                           {...field}
                         />
                         <button
                           type="button"
-                          className="absolute right-3 top-1.5 h-4 w-4 text-muted-foreground hover:text-foreground"
+                          className="absolute right-3 top-1.5 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         >
                           {showConfirmPassword ? <EyeOff /> : <Eye />}
                         </button>
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs text-red-500" />
                   </FormItem>
                 )}
               />
@@ -272,15 +274,15 @@ const SignupForm: React.FC<SignupFormProps> = ({
                 control={form.control}
                 name="dateOfBirth"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col ">
-                    <FormLabel>Date of birth</FormLabel>
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-sm font-medium">Date of birth</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "w-full pl-3 text-left font-normal",
+                              "w-full h-11 pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
@@ -308,14 +310,14 @@ const SignupForm: React.FC<SignupFormProps> = ({
                     {/* <FormDescription>
                       Your date of birth is used to calculate your age.
                     </FormDescription> */}
-                    <FormMessage />
+                    <FormMessage className="text-xs text-red-500" />
                   </FormItem>
                 )}
               />
 
               <Button
                 type="submit"
-                className="w-full h-[52px]"
+                className="w-full h-11 font-medium"
                 disabled={isLoading}
               >
                 {isLoading ? 'Creating account...' : 'Create account'}
@@ -323,10 +325,10 @@ const SignupForm: React.FC<SignupFormProps> = ({
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
+        <CardFooter className="flex flex-col space-y-4 px-6 pb-6">
           <p className="text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/login" className="text-primary hover:underline">
+            <Link href="/login" className="text-primary hover:underline transition-colors">
               Sign in
             </Link>
           </p>
@@ -337,12 +339,12 @@ const SignupForm: React.FC<SignupFormProps> = ({
             <Separator className="flex-1" />
           </div>
 
-          <div className="flex flex-col w-full space-y-2">
+          <div className="flex flex-col w-full space-y-3">
             <Button
               type="button"
               variant="outline"
               onClick={onGoogleSignIn}
-              className="max-w-[300px] h-[52px] mx-auto rounded-lg"
+              className="w-full h-11 mx-auto rounded-lg"
               disabled={isLoading}
             >
               <svg
@@ -374,7 +376,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
               type="button"
               variant="outline"
               onClick={onGithubSignIn}
-              className="max-w-[300px] h-[52px] mx-auto rounded-lg"
+              className="w-full h-11 mx-auto rounded-lg"
               disabled={isLoading}
             >
               <svg

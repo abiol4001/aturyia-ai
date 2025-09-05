@@ -6,8 +6,10 @@ import React from 'react'
 const Login = () => {
   return (
     <RedirectIfAuthenticated>
-      <div className='h-screen flex items-center justify-center max-w-[450px] mx-auto bg-gradient-to-b from-blue-50 to-blue-100 '>
-        <SigninForm />
+      <div className='min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-blue-50 to-blue-100'>
+        <div className='w-full max-w-md mx-auto'>
+          <SigninForm />
+        </div>
       </div>
     </RedirectIfAuthenticated>
   )

@@ -104,17 +104,16 @@ const SigninForm: React.FC<SigninFormProps> = ({
 
   return (
     <div className="w-full">
-      <Card className="shadow-lg">
-        <CardHeader className="space-y-1">
+      <Card className="shadow-lg border-0">
+        <CardHeader className="space-y-1 px-6 pt-6 pb-4">
           <CardTitle className="text-2xl font-bold text-center">
             Welcome to Agent Flow
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-sm">
             AI-Powered Sales Automation Platform
-            
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6 pb-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
               <FormField
@@ -122,19 +121,19 @@ const SigninForm: React.FC<SigninFormProps> = ({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-sm font-medium">Email</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="john.doe@example.com"
                           type="email"
-                          className="pl-10"
+                          className="pl-10 h-11"
                           {...field}
                         />
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs text-red-500" />
                   </FormItem>
                 )}
               />
@@ -144,26 +143,26 @@ const SigninForm: React.FC<SigninFormProps> = ({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-sm font-medium">Password</FormLabel>
                     <FormControl>
                       <div className="relative flex items-center">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="Enter your password"
                           type={showPassword ? 'text' : 'password'}
-                          className="pl-10 pr-10"
+                          className="pl-10 pr-10 h-11"
                           {...field}
                         />
                         <button
                           type="button"
-                          className="absolute right-3 top-1.5 h-4 w-4 text-muted-foreground hover:text-foreground"
+                          className="absolute right-3 top-1.5 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? <EyeOff /> : <Eye />}
                         </button>
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs text-red-500" />
                   </FormItem>
                 )}
               />
@@ -172,7 +171,7 @@ const SigninForm: React.FC<SigninFormProps> = ({
                 <button
                   type="button"
                   onClick={onForgotPassword}
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-primary hover:underline transition-colors"
                 >
                   Forgot your password?
                 </button>
@@ -180,7 +179,7 @@ const SigninForm: React.FC<SigninFormProps> = ({
 
               <Button
                 type="submit"
-                className="w-full h-[52px]"
+                className="w-full h-11 font-medium"
                 disabled={isLoading || isSigningIn}
               >
                 {isLoading || isSigningIn ? 'Signing in...' : 'Sign in'}
@@ -188,21 +187,19 @@ const SigninForm: React.FC<SigninFormProps> = ({
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          
-
+        <CardFooter className="flex flex-col space-y-4 px-6 pb-6">
           <div className="flex items-center w-full">
             <Separator className="flex-1" />
             <span className="px-3 text-sm text-muted-foreground bg-background">or</span>
             <Separator className="flex-1" />
           </div>
 
-          <div className="flex flex-col w-full space-y-2">
+          <div className="flex flex-col w-full space-y-3">
             <Button
               type="button"
               variant="outline"
               onClick={onGoogleSignIn}
-              className="max-w-[300px] h-[52px] mx-auto rounded-lg"
+              className="w-full h-11 mx-auto rounded-lg"
               disabled={isLoading || isSigningIn}
             >
               <svg
@@ -234,7 +231,7 @@ const SigninForm: React.FC<SigninFormProps> = ({
               type="button"
               variant="outline"
               onClick={onGithubSignIn}
-              className="max-w-[300px] h-[52px] mx-auto rounded-lg"
+              className="w-full h-11 mx-auto rounded-lg"
               disabled={isLoading || isSigningIn}
             >
               <svg
@@ -249,13 +246,13 @@ const SigninForm: React.FC<SigninFormProps> = ({
             </Button>
           </div>
 
-          <div className="text-center text-sm text-muted-foreground space-y-5 mt-5">
+          <div className="text-center text-sm text-muted-foreground space-y-4 mt-4">
             <div className="px-2">
-              By signing in, you agree to our <Link href="#" className="text-amber-600">Terms of Service</Link> and <Link href="#" className="text-amber-600">Privacy Policy</Link>
+              By signing in, you agree to our <Link href="#" className="text-amber-600 hover:underline transition-colors">Terms of Service</Link> and <Link href="#" className="text-amber-600 hover:underline transition-colors">Privacy Policy</Link>
             </div>
             <p className="">
               Don&apos;t have an account?{' '}
-              <Link href="/register" className=" hover:underline text-amber-600">
+              <Link href="/register" className="hover:underline text-amber-600 transition-colors">
                 Create account
               </Link>
             </p>
