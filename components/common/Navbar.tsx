@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
+import Image from 'next/image';
 
 
 const Navbar = () => {
@@ -25,7 +26,7 @@ const Navbar = () => {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               {/* Site logo here */}
-              {/* <Image src="/logo.png" alt="Aturyia AI" width={32} height={32} /> */}
+              <Image src="/assets/logo.png" alt="Aturyia AI" width={32} height={32} />
               <span className="ml-2 text-xl font-semibold text-gray-900">Aturyia AI</span>
             </Link>
           </div>

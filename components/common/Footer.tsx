@@ -1,18 +1,22 @@
 "use client"
 
 import { Github, Linkedin, X } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 
 
 export default function Footer() {
   return (
-    <footer className=" pt-24 pb-6">
+    <footer className=" pt-24 pb-6 bg-orange-200/80 backdrop-blur-sm shadow-xl">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Top 4 columns */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-10">
           {/* Column 1: Logo + Company */}
           <div className="col-span-2 space-y-6">
-            <h2 className="text-xl font-bold">Aturiya</h2>
+            <div className="flex items-center gap-1">
+              <Image src="/assets/logo.png" alt="Aturiya" width={32} height={32} />
+              <h2 className="text-2xl text-gray-400 font-bold">Aturiya</h2>
+            </div>
             <p className="text-gray-400 text-sm">
               Empowering businesses with intelligent AI solutions <br className="hidden md:block" /> for the future of work.
             </p>
@@ -53,8 +57,8 @@ export default function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-2">Support</h3>
             <ul className="space-y-3.5 text-gray-400 text-sm">
-              <li><Link href="#" className="hover:text-amber-500 transition">Help Center</Link></li>
-              <li><Link href="#" className="hover:text-amber-500 transition">Documentation</Link></li>
+              {/* <li><Link href="#" className="hover:text-amber-500 transition">Help Center</Link></li>
+              <li><Link href="#" className="hover:text-amber-500 transition">Documentation</Link></li> */}
               <li><Link href="#" className="hover:text-amber-500 transition">Contact</Link></li>
               <li><Link href="#" className="hover:text-amber-500 transition">FAQ</Link></li>
             </ul>

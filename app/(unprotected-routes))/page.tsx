@@ -29,63 +29,68 @@ export default function Home() {
   );
 
   return (
-    <div className="bg-amber-50 ">
+    <div className=" ">
 
       {/* Hero Section */}
-      <section>
-        <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20 pt-12 pb-8 px-4 md:px-14 lg:px-24">
-          <div className="md:w-1/2 space-y-2">
-            <h2 className="text-3xl text-center md:text-left md:text-5xl font-bold">
-              Hire your <br /> <span className="text-amber-500 block">AI Super Employees</span>
-            </h2>
-            <p>Grow your business faster with our AI agents that work 24/7 - <br className="hidden md:block" /><span> scaling without limits whilst lowering your costs.</span></p>
-          </div>
-
-          <div className=" w-full md:w-1/2 h-[360px] shadow-2xl border bg-amber-500 rounded-xl p-4 space-y-3">
-            <div className="w-full h-12 bg-orange-400 border border-gray-100 rounded-xl relative flex justify-between items-center px-4">
-              <div className="flex gap-2 items-center">
-                <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                <div className="h-2.5 w-2.5 rounded-full bg-yellow-500" />
-                <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-              </div>
-              <p className="font-semibold text-white">Aturiya AI  Dashboard</p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="w-full border border-gray-100 bg-amber-400 rounded-xl h-full p-4 space-y-2.5 shadow-xl">
-                <div className="w-full border border-gray-100 rounded-xl flex gap-2 items-center text-white text-sm uppercase font-bold px-4 py-1">
-                  <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                  <p className="text-xs">Sales</p>
-                </div>
-                <p className="text-white font-extrabold">SDR Agent</p>
-                <div className="text-sm flex items-center gap-2">
-                  <p className="text-white font-semibold">Performance</p>
-                  <Progress value={85} className="[&>div]:bg-red-500" />
-                  <p className="text-red-600 font-semibold">85%</p>
-                </div>
+      <section className="relative min-h-screen flex flex-col">
+        {/* Main Hero Content */}
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto w-full">
+            <div className="text-center space-y-8 py-4">
+              {/* Hero Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
+                <Bot className="h-4 w-4 text-amber-600" />
+                <span className="text-sm font-medium text-amber-700">AI-Powered Workforce</span>
               </div>
 
-              <div className="w-full border border-gray-100 rounded-xl h-full p-4 space-y-2.5 shadow-xl">
-                <div className="w-full border border-gray-100 rounded-xl flex gap-2 items-center text-white text-sm uppercase font-bold px-4 py-1">
-                  <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                  <p className="text-xs">Custom</p>
-                </div>
-                <p className="text-white font-extrabold">Custom Agent</p>
-                <div className="text-sm flex items-center gap-2">
-                  <p className="text-white font-semibold">Performance</p>
-                  <Progress value={93} className="[&>div]:bg-red-500" />
-                  <p className="text-red-600 font-semibold">93%</p>
-                </div>
+              {/* Main Heading */}
+              <div className="space-y-4">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+                  <span className="block text-gray-900">Hire your</span>
+                  <span className="block bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+                    AI Super Employees
+                  </span>
+                </h1>
+                
+                <p className="max-w-3xl mx-auto text-lg sm:text-xl md:text-2xl text-gray-600 leading-relaxed">
+                  Grow your business faster with our AI agents that work 24/7 - 
+                  <br className="hidden sm:block" />
+                  <span className="text-gray-800 font-medium"> scaling without limits whilst lowering your costs.</span>
+                </p>
               </div>
-        
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-1">
+                <Button className="h-14 px-8 text-lg font-semibold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 min-w-[200px]">
+                  <Rocket className="mr-2 h-5 w-5" />
+                  Get Started Today
+                </Button>
+                <Button variant="outline" className="h-14 px-8 text-lg font-semibold border-2 border-gray-300 hover:border-gray-400 rounded-full min-w-[200px] transition-all duration-300">
+                  Watch Demo
+                </Button>
+              </div>
+
+              {/* Trust Indicators */}
+              {/* <div className="pt-6">
+                <p className="text-sm text-gray-500 mb-6">Trusted by 500+ of the fastest-growing companies</p>
+                <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
+                  <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                  <div className="h-8 w-28 bg-gray-200 rounded"></div>
+                  <div className="h-8 w-20 bg-gray-200 rounded"></div>
+                  <div className="h-8 w-32 bg-gray-200 rounded"></div>
+                  <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                </div>
+              </div> */}
             </div>
           </div>
         </div>
 
-        <InfiniteFeatureCards />
-
-
+        {/* Feature Cards Section */}
+        <div className="w-full">
+          <InfiniteFeatureCards />
+        </div>
       </section>
+      
       {/* AI Agents section */}
       <section className="bg-amber-600  py-4 px-4 md:px-14 md:pb-24 md:py-14 relative scroll-mt-[72px]" id="ai-agents">
         <div className="py-2 px-3 rounded-2xl bg-white flex item-center justify-center gap-x-1 w-fit mx-auto">
@@ -107,11 +112,26 @@ export default function Home() {
             showIndicators={false}
             showStatus={false}
             showThumbs={false}
-            interval={5000}
-            className="mt-8 h-full-carousel"
+            interval={4000}
+            transitionTime={1000}
+            swipeScrollTolerance={50}
+            preventMovementUntilSwipeScrollTolerance={true}
+            className="mt-8 h-full-carousel carousel-root"
             onChange={updateCurrentSlide}
             selectedItem={currentSlide}
           >
+            <CarouselCard
+              name="Custom Agent"
+              desc="Build tailored AI agent for your specific business needs with"
+              desc2="our no-code platform and advanced customization options"
+              discount=""
+              footerDesc1="Customizable"
+              footerDesc2="Deployment"
+              footerScore1="100%"
+              footerScore2="24hrs"
+              Icon={Settings}
+              iconTitle="Custom Dashboard"
+              iconFooter="Personalized Solutions" />
             <CarouselCard
               name="SDR Agent"
               desc="Automate lead generation, outreach and pipeline"
@@ -124,18 +144,6 @@ export default function Home() {
               Icon={Target}
               iconTitle={"Sales Department"}
               iconFooter="Lead Generation & Outreach" />
-            <CarouselCard
-              name="Custom Agent"
-              desc="Build tailored Ai agent for your specific business needs with"
-              desc2="our no code platform and advanced customization options"
-              discount=""
-              footerDesc1="Customizable"
-              footerDesc2="Deployment"
-              footerScore1="100%"
-              footerScore2="24hrs"
-              Icon={Settings}
-              iconTitle="Custon Dashboard"
-              iconFooter="" />
           </Carousel>
           <div className="flex items-center justify-center absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-400 rounded-lg px-4 py-1.5 gap-x-2">
             <div className="w-24 h-1.5 flex items-center">
@@ -189,10 +197,10 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col items-center md:flex-row md:items-start gap-14 mt-10  mx-auto md:px-20">
-          <div className="bg-white rounded-lg w-full  p-4 md:p-10 shadow-xl">
+          <div className="bg-white rounded-lg w-full  p-4 md:p-11 shadow-xl">
             <div className="flex justify-between items-center">
               <h3 className="text:lg md:text-xl font-bold">Popular Integrations</h3>
-              <div className="py-2 px-4 rounded-2xl bg-amber-500 border  w-fit">
+              <div className="py-2 px-4 rounded-full bg-amber-500 border  w-fit">
                 <p className="text-[10px] md:text-xs text-white font-semibold">Most Used</p>
               </div>
             </div>
@@ -201,7 +209,7 @@ export default function Home() {
             <IntegrationCards />
           </div>
 
-          <div className="flex md:flex-col  gap-x-5 w-full gap-y-9">
+          {/* <div className="flex md:flex-col  gap-x-5 w-full gap-y-9">
             <div className="bg-white rounded-lg flex flex-col gap-y-3 w-full p-4 md:p-10 shadow-xl">
 
               <div className="bg-amber-500 h-12 w-12 rounded-xl flex items-center  justify-center">
@@ -219,7 +227,7 @@ export default function Home() {
               <p className="font-bold text-lg">Support</p>
               <p className="text-sm font-light">Deflection, summaries, alerts</p>
             </div>
-          </div>
+          </div> */}
 
         </div>
       </section>

@@ -28,6 +28,14 @@ const IntegrationCards = () => {
       name: "Salesforce",
       icon: <Link className="text-white h-4 w-4" />
     },
+    {
+      name: "LinkedIn",
+      icon: <Link className="text-white h-4 w-4" />
+    },
+    {
+      name: "Outlook",
+      icon: <Link className="text-white h-4 w-4" />
+    },
   ]
   return (
     <div className="flex flex-wrap gap-4 justify-center">
