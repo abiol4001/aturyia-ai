@@ -67,7 +67,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <Sidebar agentType={agentType} user={user} />
       
@@ -95,7 +95,7 @@ export default function DashboardLayout({
         )}
         
         {/* Page Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 overflow-hidden">
           {children}
         </main>
       </div>

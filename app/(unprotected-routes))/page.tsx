@@ -52,19 +52,19 @@ export default function Home() {
         {/* Animated Dots */}
         <div className="absolute inset-0">
           <div 
-            className="absolute w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+            className="absolute w-2 h-2 bg-orange-500 rounded-full animate-pulse"
             style={{ top: '20%', left: '30%', animationDelay: '0s' }}
           ></div>
           <div 
-            className="absolute w-1 h-1 bg-blue-500 rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-orange-500 rounded-full animate-pulse"
             style={{ top: '40%', left: '60%', animationDelay: '0.5s' }}
           ></div>
           <div 
-            className="absolute w-1 h-1 bg-blue-500 rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-orange-500 rounded-full animate-pulse"
             style={{ top: '70%', left: '20%', animationDelay: '1s' }}
           ></div>
           <div 
-            className="absolute w-1 h-1 bg-blue-500 rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-orange-500 rounded-full animate-pulse"
             style={{ top: '30%', left: '80%', animationDelay: '1.5s' }}
           ></div>
         </div>
