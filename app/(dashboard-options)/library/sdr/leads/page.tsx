@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Search, Filter, MoreHorizontal, Mail, Linkedin, Check, X, ChevronDown } from 'lucide-react';
+import { Search, Filter, Mail, Linkedin, Check, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';

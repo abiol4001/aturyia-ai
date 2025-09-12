@@ -4,17 +4,6 @@ import React from 'react';
 import DashboardPage from '@/components/dashboard/DashboardPage';
 
 const CustomAgentCampaigns = () => {
-  const handlePause = () => {
-    console.log('Pause custom agent campaign');
-  };
-
-  const handleEdit = () => {
-    console.log('Edit custom agent campaign');
-  };
-
-  const handleMenu = () => {
-    console.log('Open custom agent menu');
-  };
 
   return (
     <DashboardPage
