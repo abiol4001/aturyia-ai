@@ -35,7 +35,7 @@ export default function RedirectIfAuthenticated({
 
         if (session?.user) {
           // User is authenticated, redirect to dashboard
-          router.push('/dashboard');
+          router.push('/library');
           return;
         }
 
@@ -57,7 +57,7 @@ export default function RedirectIfAuthenticated({
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
           // User just signed in, redirect to dashboard
-          router.push('/dashboard');
+          router.push('/library');
         } else if (event === 'SIGNED_OUT') {
           // User signed out, allow access to auth pages
           setIsAuthenticated(false);

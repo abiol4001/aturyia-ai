@@ -67,8 +67,8 @@ export default function UserMenu({ userEmail }: UserMenuProps) {
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="ghost"
-          className={`relative h-10 w-10 rounded-full ${avatarColor} hover:opacity-80 transition-opacity`}
+          variant="default"
+          className={`relative h-10 w-10 rounded-full ${avatarColor} hover:none cursor-pointer transition-opacity`}
         >
           <span className="text-white font-semibold text-sm">{initial}</span>
         </Button>

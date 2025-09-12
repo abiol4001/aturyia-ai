@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, Shield, Rocket, Brain, Globe, Target, Settings } from 'lucide-react';
+import { Rocket, Brain, Globe, Target, Settings } from 'lucide-react';
 
 const InfiniteFeatureCards = () => {
   const features = [
@@ -39,7 +39,7 @@ const InfiniteFeatureCards = () => {
   const infiniteFeatures = [...features, ...features, ...features];
 
   return (
-    <div className="w-full overflow-hidden pb-10">
+    <div className="w-full overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">  
 
         <div className="relative">
@@ -88,7 +88,7 @@ const InfiniteFeatureCards = () => {
       <style dangerouslySetInnerHTML={{
         __html: `
           .continuous-scroll {
-            animation: continuous-slide 20s linear infinite;
+            animation: continuous-slide 40s linear infinite;
           }
           
           @keyframes continuous-slide {

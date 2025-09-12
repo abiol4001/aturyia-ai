@@ -8,7 +8,7 @@ import CarouselCard from "@/components/CarouselCard";
 import FunctionalityCards from "@/components/FunctionalityCards";
 import IntegrationCards from "@/components/IntegrationCards";
 import SolutionsTabs from "@/components/SolutionsTabs";
-import { Progress } from "@/components/ui/progress";
+// import { Progress } from "@/components/ui/progress";
 import InfiniteFeatureCards from "@/components/HeroSectionScroll";
 import { Button } from "@/components/ui/button";
 
@@ -31,10 +31,92 @@ export default function Home() {
   return (
     <div className=" ">
 
+      {/* How it works section */}
+      <section className="xl:h-fit py-10 px-4 md:px-14 lg:px-24 scroll-mt-[72px] relative overflow-hidden" id="how-it-works" style={{
+        background: 'white',
+        position: 'relative'
+      }}>
+        {/* Moving Grid Background */}
+        <div 
+          className="absolute inset-0 opacity-80"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px',
+            animation: 'grid-move 10s linear infinite'
+          }}
+        ></div>
+        
+        {/* Animated Dots */}
+        <div className="absolute inset-0">
+          <div 
+            className="absolute w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+            style={{ top: '20%', left: '30%', animationDelay: '0s' }}
+          ></div>
+          <div 
+            className="absolute w-1 h-1 bg-blue-500 rounded-full animate-pulse"
+            style={{ top: '40%', left: '60%', animationDelay: '0.5s' }}
+          ></div>
+          <div 
+            className="absolute w-1 h-1 bg-blue-500 rounded-full animate-pulse"
+            style={{ top: '70%', left: '20%', animationDelay: '1s' }}
+          ></div>
+          <div 
+            className="absolute w-1 h-1 bg-blue-500 rounded-full animate-pulse"
+            style={{ top: '30%', left: '80%', animationDelay: '1.5s' }}
+          ></div>
+        </div>
+        <div className="relative z-10 w-full md:w-[60%] shadow-2xl border-t bg-white mx-auto h-full md:h-[45%] rounded-xl p-4 md:p-10 flex flex-col gap-6">
+          <div className="py-1 px-2 rounded-xl bg-amber-50 border border-amber-400 flex item-center justify-center gap-x-1 w-fit mx-auto">
+            <Zap className="text-amber-500" />
+            <div className="flex items-center justify-center">
+              <p className="text-xs text-amber-500">Process</p>
+            </div>
+          </div>
+          <h2 className="text-4xl font-bold text-center ">Everything you need for your <br className="hidden lg:block" /> business on one platform</h2>
+          <p className="text-muted-foreground font-light text-center">Simple setup, powerful automation, immediate results</p>
+        </div>
+        <div className="relative z-10">
+          <FunctionalityCards />
+        </div>
+      </section>
+
+      {/* Solutions section */}
+      <section className=" px-4 md:px-14 lg:px-24 scroll-mt-[72px] bg-white relative" id="solutions">
+        <div className="py-4 md:py-14 border" style={{
+          backgroundImage: `radial-gradient(circle, #e5e7eb 2px, transparent 1px)`,
+          backgroundSize: '15px 15px',
+          backgroundPosition: '0 0'
+        }}>
+
+        
+        <div className=" w-full md:w-[60%] shadow-2xl border-t bg-white mx-auto h-full md:h-[45%] rounded-xl p-4 md:p-10 flex flex-col gap-6">
+          <div className="py-1.5 px-3 rounded-xl bg-amber-50 border border-amber-400 flex item-center justify-center gap-x-1 w-fit mx-auto">
+            <Target className="text-amber-500 h-4 w-4" />
+            <div className="flex items-center justify-center">
+              <p className="text-xs text-amber-500">Solutions</p>
+            </div>
+          </div>
+          <h2 className="text-4xl font-bold text-center ">Transform Every Department with<br className="hidden lg:block" />  our AI Agents</h2>
+          <p className="text-muted-foreground font-light text-center">AI agents designed for specific business challenges</p>
+        </div>
+
+        <div>
+          <div>
+
+          </div>
+
+          <SolutionsTabs />
+        </div>
+        </div>
+      </section>
+
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col">
+      <section className="relative min-h-screen">
         {/* Main Hero Content */}
-        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-4">
           <div className="max-w-7xl mx-auto w-full">
             <div className="text-center space-y-8 py-4">
               {/* Hero Badge */}
@@ -86,7 +168,7 @@ export default function Home() {
         </div>
 
         {/* Feature Cards Section */}
-        <div className="w-full">
+        <div className="w-full ">
           <InfiniteFeatureCards />
         </div>
       </section>
@@ -167,21 +249,6 @@ export default function Home() {
 
       </section>
 
-      {/* How it works section */}
-      <section className=" xl:h-fit py-10 px-4 md:px-14 lg:px-24 scroll-mt-[72px]" id="how-it-works">
-        <div className=" w-full md:w-[60%] shadow-xl bg-white mx-auto h-full md:h-[45%] rounded-xl p-4 md:p-10 flex flex-col gap-6">
-          <div className="py-1 px-2 rounded-xl bg-amber-50 border border-amber-400 flex item-center justify-center gap-x-1 w-fit mx-auto">
-            <Zap className="text-amber-500" />
-            <div className="flex items-center justify-center">
-              <p className="text-xs text-amber-500">Process</p>
-            </div>
-          </div>
-          <h2 className="text-4xl font-bold text-center ">Everything you need for your <br className="hidden lg:block" /> business on one platform</h2>
-          <p className="text-muted-foreground font-light text-center">Simple setup, powerful automation, immediate results</p>
-        </div>
-        <FunctionalityCards />
-      </section>
-
       {/* Integrations section */}
       <section className="bg-amber-500 xl:h-fit py-10 md:py-12 px-4 md:px-14 lg:px-24 space-y-4 scroll-mt-[72px]" id="integrations">
         <div className="py-1.5 px-3 rounded-2xl bg-white flex item-center justify-center gap-x-1 w-fit mx-auto">
@@ -197,7 +264,7 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col items-center md:flex-row md:items-start gap-14 mt-10  mx-auto md:px-20">
-          <div className="bg-white rounded-lg w-full  p-4 md:p-11 shadow-xl">
+          <div className="bg-white rounded-lg w-fit mx-auto p-4 md:px-14 md:py-11 shadow-xl">
             <div className="flex justify-between items-center">
               <h3 className="text:lg md:text-xl font-bold">Popular Integrations</h3>
               <div className="py-2 px-4 rounded-full bg-amber-500 border  w-fit">
@@ -232,27 +299,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Solutions section */}
-      <section className=" py-4 md:py-14 px-4 md:px-14 lg:px-24 scroll-mt-[72px]" id="solutions">
-        <div className=" w-full md:w-[60%] shadow-xl bg-white mx-auto h-full md:h-[45%] rounded-xl p-4 md:p-10 flex flex-col gap-6">
-          <div className="py-1.5 px-3 rounded-xl bg-amber-50 border border-amber-400 flex item-center justify-center gap-x-1 w-fit mx-auto">
-            <Target className="text-amber-500 h-4 w-4" />
-            <div className="flex items-center justify-center">
-              <p className="text-xs text-amber-500">Solutions</p>
-            </div>
-          </div>
-          <h2 className="text-4xl font-bold text-center ">Transform Every Department with<br className="hidden lg:block" />  our AI Agents</h2>
-          <p className="text-muted-foreground font-light text-center">AI agents designed for specific business challenges</p>
-        </div>
-
-        <div>
-          <div>
-
-          </div>
-
-          <SolutionsTabs />
-        </div>
-      </section>
+      
 
       {/* Pricing section */}
       <section className="bg-amber-500 py-14 md:py-24 px-4 md:px-14 lg:px-24 space-y-11 scroll-mt-[72px]" id="pricing">

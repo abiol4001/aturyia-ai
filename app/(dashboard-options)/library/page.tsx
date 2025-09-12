@@ -1,34 +1,43 @@
-import React from 'react';
-import { createClient } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
+"use client"
+
+import React, { useState, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 import UserMenu from '@/components/auth/UserMenu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Search, Settings, Mail, BarChart2, CalendarClock, Megaphone, Headphones, FileSearch, ArrowRightCircle, Target } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AgentProfileModal from '@/components/AgentProfileModal';
 
-// Server-side auth check
-async function checkAuth() {
-  const supabase = await createClient();
-  
-  const { data: { session }, error } = await supabase.auth.getSession();
-  
-  if (error || !session?.user) {
-    redirect('/login');
+const Dashboard = () => {
+  const [user, setUser] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session?.user) {
+        router.push('/login');
+        return;
+      }
+      
+      setUser(session.user);
+    };
+
+    checkAuth();
+  }, [router]);
+
+  if (!user) {
+    return <div>Loading...</div>;
   }
-  console.log(session)
-  
-  return session.user;
-}
-
-
-const Dashboard = async () => {
-  // This will redirect if not authenticated
-  const user = await checkAuth();
 
   return (
-    <div className="p-8  ">
+    <div className="p-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Agent Library</h1>
@@ -103,8 +112,20 @@ const Dashboard = async () => {
                 </div>
               </div>
               <div className="flex items-center gap-2 justify-start p-4 md:p-6">
-                <Button className="bg-amber-500 hover:bg-orange-600 text-white h-9 px-6 w-24">Launch</Button>
-                <Button variant="outline" className="h-9 px-6 w-32"><Settings className="h-4 w-4 mr-2" />Configure</Button>
+                <Button 
+                className="bg-amber-500 hover:bg-orange-600 text-white h-9 px-6 w-24"
+                onClick={()=> router.push('/library/sdr/campaigns')}
+                >
+                  Launch
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-9 px-6 w-32"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configure
+                </Button>
               </div>
             </Card>
 
@@ -170,7 +191,13 @@ const Dashboard = async () => {
             </div>
           </TabsContent>
         </Tabs>
-    </div>
+      </div>
+
+      {/* Agent Profile Modal */}
+      <AgentProfileModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 };

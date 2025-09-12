@@ -93,7 +93,7 @@ const SigninForm: React.FC<SigninFormProps> = ({
 
       // Success - show toast and navigate to dashboard
       toast.success('Welcome back!');
-      router.push('/dashboard');
+      router.push('/library');
     } catch (error) {
       console.error('Unexpected error:', error);
       toast.error('An unexpected error occurred');
