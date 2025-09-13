@@ -129,7 +129,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
     }
 
     toast.success('Account created successfully');
-    router.push('/dashboard');
+    router.push('/library');
     
   };
 
