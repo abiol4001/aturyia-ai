@@ -68,7 +68,7 @@ const Leads = () => {
       lastContact: 'Sep 1, 2025'
     },
     {
-      id: '6',
+      id: '7',
       name: 'Emily Davis',
       email: 'emily@enterprise.com',
       linkedin: 'http://www.linkedin.com/in/emily-davis...',
@@ -77,7 +77,7 @@ const Leads = () => {
       lastContact: 'Sep 1, 2025'
     },
     {
-      id: '6',
+      id: '8',
       name: 'Emily Davis',
       email: 'emily@enterprise.com',
       linkedin: 'http://www.linkedin.com/in/emily-davis...',

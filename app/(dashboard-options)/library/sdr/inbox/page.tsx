@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Search, Filter, Star, Trash2, MoreVertical, ChevronDown, Clock, Mail, Reply, Forward, InboxIcon, SendHorizonal, MailCheck, ChevronLeft } from 'lucide-react';
+import { Search, Filter, Trash2, Clock, InboxIcon, SendHorizonal, MailCheck, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import EmailDetails from '@/components/dashboard/email-details';
 
 interface Email {
   id: string;
@@ -219,13 +220,6 @@ Budget Allocation:
 • Digital Marketing: $25,000
 • Content Creation: $10,000
 • Events & Conferences: $8,000
-• Tools & Software: $5,000
-• Miscellaneous: $2,000
-
-This budget will help us achieve our Q4 goals of:
-• 25% increase in lead generation
-• 15% improvement in conversion rates
-• 30% growth in brand awareness
 
 Please review and approve by end of week.
 
@@ -319,9 +313,6 @@ Acme SDR`
     }
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -428,100 +419,23 @@ Acme SDR`
             </div>
 
           {/* Right Main Content - Email Details */}
-          <div className="flex-1 bg-white flex flex-col">
-            {selectedEmail && emailThread[selectedEmail] ? (
-              <>
-                {/* Email Header */}
-                <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row md:justify-between">
-                  <div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-semibold text-sm">
-                          {getInitials(emailThread[selectedEmail].sender)}
-                        </span>
-                      </div>
-                      <div>
-                        <h2 className="font-medium text-gray-900">{emailThread[selectedEmail].sender}</h2>
-                        <p className="text-sm text-gray-600">{emailThread[selectedEmail].email}</p>
-                      </div>
-                    </div>
-                    <h1 className="text-lg font-semibold text-gray-900 mt-4">
-                      {emailThread[selectedEmail].subject}
-                    </h1>
-                  </div>
-
-                  <div className="flex flex-col gap-3 space-x-4">
-                    <div className="">
-                      <Button variant="ghost" size="icon">
-                        <Star className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">All Channels</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </div>
-                  </div>
-                </div>
-
-                
-
-                {/* Email Thread */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  {emailThread[selectedEmail].messages.map((message) => (
-                    <div key={message.id} className="border-l-4 border-orange-500 pl-4">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-semibold text-xs">
-                            {message.avatar}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">{message.from}</span>
-                          <span className="text-sm text-gray-500 ml-2">{message.time}</span>
-                        </div>
-                      </div>
-                      <h3 className="font-medium text-gray-900 mb-2">{message.subject}</h3>
-                      <div className="text-gray-700 whitespace-pre-line leading-relaxed">
-                        {message.content}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Reply Section */}
-                <div className="p-6 border-t border-gray-200 bg-gray-50">
-                  <div className="flex items-center space-x-3">
-                    <Button variant="outline" size="sm">
-                      <Reply className="h-4 w-4 mr-2" />
-                      Reply
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Forward className="h-4 w-4 mr-2" />
-                      Forward
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Mail className="h-4 w-4 mr-2" />
-                      Mark as Read
-                    </Button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <Mail className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium">No email selected</p>
-                  <p className="text-sm">Choose an email from the list to view its content</p>
-                </div>
-              </div>
-            )}
-          </div>
+          <EmailDetails
+            selectedEmail={selectedEmail}
+            emailThread={emailThread}
+            variant={activeTab as 'inbox' | 'approvals' | 'sent'}
+            onReply={() => console.log('Reply clicked')}
+            onForward={() => console.log('Forward clicked')}
+            onMarkAsRead={() => console.log('Mark as read clicked')}
+            onStar={() => console.log('Star clicked')}
+            onDelete={() => console.log('Delete clicked')}
+            onMore={() => console.log('More clicked')}
+            onApprove={() => console.log('Approve clicked')}
+            onReject={() => console.log('Reject clicked')}
+            onEdit={() => console.log('Edit clicked')}
+            onMail={() => console.log('Mail clicked')}
+            onResend={() => console.log('Resend clicked')}
+            onSchedule={() => console.log('Schedule clicked')}
+          />
         </div>
       </Tabs>
     </DashboardLayout>

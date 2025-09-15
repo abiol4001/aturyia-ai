@@ -11,10 +11,10 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
-    { name: 'AI Agents', href: '#ai-agents' },
     { name: 'How it Works', href: '#how-it-works' },
-    { name: 'Integrations', href: '#integrations' },
     { name: 'Solutions', href: '#solutions' },
+    { name: 'AI Agents', href: '#ai-agents' },
+    { name: 'Integrations', href: '#integrations' },
     { name: 'Pricing', href: '#pricing' },
   ];
 
