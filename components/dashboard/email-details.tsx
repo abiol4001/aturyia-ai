@@ -110,15 +110,7 @@ export default function EmailDetails({
       case 'sent':
         return (
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" onClick={onStar}>
-              <Star className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={onDelete}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={onMore}>
-              <MoreVertical className="h-4 w-4" />
-            </Button>
+            
           </div>
         );
       default: // inbox
@@ -144,42 +136,11 @@ export default function EmailDetails({
     
     switch (variant) {
       case 'approvals':
-        return (
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              onClick={onReject}
-              className="flex items-center space-x-2 px-6 py-2 text-gray-700 border-gray-300 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
-            >
-              <X className="h-4 w-4" />
-              <span>Reject</span>
-            </Button>
-            <Button
-              onClick={onApprove}
-              className="flex items-center space-x-2 px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Check className="h-4 w-4" />
-              <span>Approve</span>
-            </Button>
-          </div>
-        );
+        // No footer actions for approvals - buttons are on each message
+        return null;
       case 'sent':
-        return (
-          <div className="flex items-center space-x-3">
-            <Button variant="outline" size="sm" onClick={onResend}>
-              <Mail className="h-4 w-4 mr-2" />
-              Resend
-            </Button>
-            <Button variant="outline" size="sm" onClick={onSchedule}>
-              <Clock className="h-4 w-4 mr-2" />
-              Schedule
-            </Button>
-            <Button variant="outline" size="sm" onClick={onForward}>
-              <Forward className="h-4 w-4 mr-2" />
-              Forward
-            </Button>
-          </div>
-        );
+        // No footer for sent emails (can be added later)
+        return null;
       default: // inbox
         return (
           <div className="flex items-center space-x-3">
@@ -223,7 +184,7 @@ export default function EmailDetails({
 
         <div className="flex flex-col gap-3 space-x-4">
           {renderHeaderActions()}
-          <div className="flex items-center space-x-2">
+          <div className={`flex items-center space-x-2 ${variant === 'inbox' ? "flex" : 'hidden'}`}>
             <span className="text-sm text-gray-600">All Channels</span>
             <ChevronDown className="h-4 w-4" />
           </div>
@@ -234,12 +195,12 @@ export default function EmailDetails({
       <div 
         className="overflow-y-auto p-6 space-y-6"
         style={{ 
-          maxHeight: 'calc(100vh - 300px)',
+          maxHeight: 'calc(100vh - 250px)',
           minHeight: '200px'
         }}
       >
         {currentEmail.messages.map((message) => (
-          <div key={message.id} className="border-l-4 border-orange-500 pl-4">
+          <div key={message.id} className={`variant === 'inbox' ? 'bg-gray-100' : 'bg-white border border-gray-200' p-4 rounded-lg transition-all`}>
             <div className="flex items-center space-x-3 mb-3">
               <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold text-xs">
@@ -255,14 +216,39 @@ export default function EmailDetails({
             <div className="text-gray-700 whitespace-pre-line leading-relaxed">
               {message.content}
             </div>
+            
+            {/* Approval buttons for each message in approvals variant */}
+            {variant === 'approvals' && (
+              <div className="flex items-center justify-end space-x-3 mt-4 pt-4 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onReject}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-700 border-gray-300 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                >
+                  <X className="h-4 w-4" />
+                  <span>Reject</span>
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={onApprove}
+                  className="flex items-center space-x-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white"
+                >
+                  <Check className="h-4 w-4" />
+                  <span>Approve</span>
+                </Button>
+              </div>
+            )}
           </div>
         ))}
       </div>
 
-      {/* Footer Actions - Fixed at bottom */}
-      <div className="absolute bottom-5 left-0 right-0 px-6 py-3 border-t border-gray-200 bg-gray-50">
-        {renderFooterActions()}
-      </div>
+      {/* Footer Actions - Fixed at bottom (only when there are actions) */}
+      {renderFooterActions() && (
+        <div className="absolute bottom-5 w-full flex justify-end right-0 px-6 py-3 border-t border-gray-200 bg-gray-50">
+          {renderFooterActions()}
+        </div>
+      )}
     </div>
   );
 }

@@ -45,17 +45,6 @@ const Inbox = () => {
       isSelected: true,
       avatar: 'DS'
     },
-    // {
-    //   id: 'cary-redman',
-    //   sender: 'Cary Redman',
-    //   email: 'cary@example.com',
-    //   subject: 'Campaign Interest',
-    //   preview: 'Hello, This looks like a nice campaign. Yes, I am very much interested in this...',
-    //   time: '01:42 PM',
-    //   unread: 1,
-    //   isSelected: false,
-    //   avatar: 'CR'
-    // }
   ];
 
   const approvalEmails = [
@@ -324,8 +313,8 @@ Acme SDR`
       {emails.map((email) => (
         <div
           key={email.id}
-          className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-            email.isSelected ? 'bg-gray-50' : ''
+          className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-amber-50 ${
+            selectedEmail === email.id ? 'bg-gray-100' : ''
           }`}
           onClick={() => setSelectedEmail(email.id)}
         >

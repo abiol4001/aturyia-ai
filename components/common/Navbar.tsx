@@ -11,11 +11,11 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
-    { name: 'How it Works', href: '#how-it-works' },
-    { name: 'Solutions', href: '#solutions' },
-    { name: 'AI Agents', href: '#ai-agents' },
-    { name: 'Integrations', href: '#integrations' },
-    { name: 'Pricing', href: '#pricing' },
+    { name: 'How it Works', href: '/#how-it-works' },
+    { name: 'Solutions', href: '/#solutions' },
+    { name: 'AI Agents', href: '/#ai-agents' },
+    { name: 'Integrations', href: '/#integrations' },
+    { name: 'Pricing', href: '/pricing' },
   ];
 
   return (
@@ -35,13 +35,13 @@ const Navbar = () => {
           <div className="hidden md:block">
             <div className="ml-10 flex items-center space-x-8 h-[40px]">
               {navLinks.map((link) => (
-                <a
+                <Link
                   key={link.name}
                   href={link.href}
                   className="text-gray-600  px-3 py-2 text-sm font-medium hover:text-amber-500 hover:border-b-2 hover:border-b-amber-500 transition-all duration-300 rounded-xs hover:font-semibold hover:bg-amber-500/5"
                 >
                     {link.name}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -82,14 +82,14 @@ const Navbar = () => {
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
                 className="text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium transition-colors duration-200"
                 onClick={() => setIsOpen(false)}
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
             <div className="border-t border-gray-200 pt-4 pb-3">
               <Link
@@ -101,7 +101,7 @@ const Navbar = () => {
               </Link>
               <div className="px-3 py-2">
                 <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
-                  <Link href="/demo" onClick={() => setIsOpen(false)}>
+                  <Link href="/login" onClick={() => setIsOpen(false)}>
                     Get Demo
                   </Link>
                 </Button>
