@@ -316,4 +316,30 @@ export const useSubmitICP = () => {
   });
 };
 
+/**
+ * Hook for fetching knowledge base files
+ */
+export const useKnowledgeBaseFiles = () => {
+  return useQuery({
+    queryKey: ['knowledge-base-files'],
+    queryFn: () => sdrService.getKnowledgeBaseFiles(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+/**
+ * Hook for uploading knowledge base files
+ */
+export const useUploadKnowledgeBase = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (files: File[]) => sdrService.uploadKnowledgeBase(files),
+    onSuccess: () => {
+      // Invalidate and refetch knowledge base files
+      queryClient.invalidateQueries({ queryKey: ['knowledge-base-files'] });
+    },
+  });
+};
+
 // Note: SDR hooks are defined above in this file

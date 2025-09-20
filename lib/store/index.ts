@@ -27,6 +27,8 @@ export {
   useApproveEmailLeads,
   useRejectEmailLeads,
   useSubmitICP,
+  useKnowledgeBaseFiles,
+  useUploadKnowledgeBase,
   useSdrAgentConfig as useSdrAgentConfigApi,
   useSdrAgentWorkflow,
   useSdrAgentStatus

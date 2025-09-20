@@ -232,3 +232,11 @@ export interface MailLogStats {
   replyRate: number;
   averageResponseTime: number;
 }
+
+// Knowledge Base Types
+export interface KnowledgeBaseFile {
+  filename: string;
+  url: string;
+  size: number;
+  modified_at: string;
+}

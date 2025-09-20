@@ -13,7 +13,8 @@ import {
   LeadStats,
   MailLog,
   MailLogFilters,
-  MailLogStats
+  MailLogStats,
+  KnowledgeBaseFile
 } from '../types';
 import {
   getUserId,
@@ -186,6 +187,10 @@ export const sdrService = {
    * Upload Knowledge Base Documents
    * POST /users/{user_id}/agents/sdr/{agent_id}/knowledgebase
    */
+  /**
+   * Upload knowledge base files
+   * POST /users/{user_id}/agents/sdr/{agent_id}/knowledgebase
+   */
   uploadKnowledgeBase: async (files: File[]): Promise<ApiResponse<unknown>> => {
     const userId = getUserId();
     const agentId = getSdrAgentId();
@@ -193,9 +198,9 @@ export const sdrService = {
 
     const formData = new FormData();
     
-    // Add each file to FormData
+    // Add each file to FormData with correct parameter name
     files.forEach((file) => {
-      formData.append(`documents`, file);
+      formData.append('files', file);
     });
 
     try {
@@ -204,7 +209,7 @@ export const sdrService = {
           'Content-Type': 'multipart/form-data',
         },
       });
-
+      console.log('🔍 uploadKnowledgeBase API Response:', response);
       return response;
     } catch (error) {
       console.error('Error uploading knowledge base documents:', error);
@@ -551,6 +556,25 @@ export const sdrService = {
       return response;
     } catch (error) {
       console.error('Error submitting ICP:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get knowledge base files
+   * GET /users/{user_id}/agents/sdr/{agent_id}/knowledgebase/files
+   */
+  getKnowledgeBaseFiles: async (): Promise<ApiResponse<KnowledgeBaseFile[]>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/knowledgebase/files`;
+
+    try {
+      const response = await api.get<ApiResponse<KnowledgeBaseFile[]>>(url);
+      console.log('🔍 getKnowledgeBaseFiles API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching knowledge base files:', error);
       throw error;
     }
   }

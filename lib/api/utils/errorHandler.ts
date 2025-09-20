@@ -4,7 +4,13 @@ export interface ApiError {
   message: string;
   code?: string;
   status?: number;
-  details?: any;
+  details?: unknown;
+}
+
+interface ErrorResponse {
+  message?: string;
+  code?: string;
+  details?: unknown;
 }
 
 export class ApiErrorHandler {
@@ -34,12 +40,13 @@ export class ApiErrorHandler {
     if (response) {
       // Server responded with error status
       const { status, data } = response;
+      const errorData = data as ErrorResponse;
       
       return {
-        message: data?.message || this.getDefaultMessage(status),
-        code: data?.code || `HTTP_${status}`,
+        message: errorData?.message || this.getDefaultMessage(status),
+        code: errorData?.code || `HTTP_${status}`,
         status,
-        details: data?.details,
+        details: errorData?.details,
       };
     }
     
