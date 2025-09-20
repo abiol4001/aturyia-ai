@@ -8,7 +8,6 @@ const sliderStyles = `
   .slider {
     -webkit-appearance: none;
     appearance: none;
-    background: transparent;
     cursor: pointer;
   }
 

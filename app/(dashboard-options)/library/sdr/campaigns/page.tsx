@@ -2,106 +2,80 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Pause, Play, Plus, RefreshCcw, Target, MoreVertical, Mail, Clock } from 'lucide-react';
+import { Pause, Play, Plus, RefreshCcw, Target, Mail, Clock, Zap, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import CampaignCalendar from '@/components/dashboard/campaign-calendar';
 import SearchInput from '@/components/ui/search-input';
+import { useCampaigns } from '@/lib/api/hooks/useApi';
+import { CampaignFilters } from '@/lib/api/types';
+import { useRouter } from 'next/navigation';
 
 
 const Campaigns = () => {
+  const [filters, setFilters] = useState<CampaignFilters>({});
+  
 
-  // Campaign data
-  const campaigns = [
-    {
-      id: 1,
-      name: "East Midlands Chamber memberships",
-      date: "Sep 12, 2025",
-      services: ["Email via Gmail", "Calendar via Gmail"],
-      schedule: "09:00 - 17:00",
-      status: "READY"
-    },
-    {
-      id: 2,
-      name: "Tesco clothing line",
-      date: "Sep 12, 2025",
-      services: ["Email via Gmail", "Calendar via Gmail"],
-      schedule: "09:00 - 17:00",
-      status: "READY"
-    },
-    {
-      id: 3,
-      name: "11x.AI Alice Sales Campaign",
-      date: "Sep 11, 2025",
-      services: ["Email via Gmail", "Calendar via Gmail"],
-      schedule: "09:00 - 17:00",
-      status: "READY"
-    },
-    {
-      id: 4,
-      name: "M&S Clothing Campaign",
-      date: "Sep 11, 2025",
-      services: ["Email via Gmail", "Calendar via Gmail"],
-      schedule: "09:00 - 17:00",
-      status: "READY"
-    }
-  ];
+  // Fetch campaigns and stats from API
+  const { 
+    data: campaignsResponse, 
+    isLoading: campaignsLoading, 
+    error: campaignsError,
+    refetch: refetchCampaigns 
+  } = useCampaigns(filters);
 
-  // Calendar data with detailed campaign events
-  const campaignEvents = [
-    { 
-      date: 11, 
-      campaigns: [
-        { id: 3, name: "11x.AI Alice Sales Campaign", schedule: "09:00 - 17:00", status: "READY" },
-        { id: 4, name: "M&S Clothing Campaign", schedule: "09:00 - 17:00", status: "READY" }
-      ]
-    },
-    { 
-      date: 12, 
-      campaigns: [
-        { id: 1, name: "East Midlands Chamber memberships", schedule: "09:00 - 17:00", status: "READY" },
-        { id: 2, name: "Tesco clothing line", schedule: "09:00 - 17:00", status: "READY" }
-      ]
-    },
-    { 
-      date: 15, 
-      campaigns: [
-        { id: 1, name: "East Midlands Chamber memberships", schedule: "09:00 - 17:00", status: "READY" },
-        { id: 2, name: "Tesco clothing line", schedule: "09:00 - 17:00", status: "READY" },
-        { id: 3, name: "Alice Sales Campaign", schedule: "09:00 - 17:00", status: "READY" },
-        { id: 4, name: "M&S Clothing Campaign", schedule: "09:00 - 17:00", status: "READY" }
-      ]
-    },
-    { 
-      date: 18, 
-      campaigns: [
-        { id: 5, name: "TechCorp Outreach", schedule: "10:00 - 16:00", status: "RUNNING" },
-        { id: 6, name: "Startup Accelerator", schedule: "09:30 - 17:30", status: "READY" }
-      ]
-    },
-    { 
-      date: 20, 
-      campaigns: [
-        { id: 7, name: "Enterprise Solutions", schedule: "08:00 - 18:00", status: "READY" },
-        { id: 8, name: "SMB Growth Campaign", schedule: "09:00 - 17:00", status: "PAUSED" }
-      ]
-    },
-    { 
-      date: 24, 
-      campaigns: [
-        { id: 9, name: "Q4 Revenue Push", schedule: "09:00 - 17:00", status: "READY" },
-        { id: 10, name: "Client Retention", schedule: "10:00 - 16:00", status: "READY" }
-      ]
-    },
-    { 
-      date: 27, 
-      campaigns: [
-        { id: 11, name: "New Market Expansion", schedule: "09:00 - 17:00", status: "READY" },
-        { id: 12, name: "Partnership Outreach", schedule: "09:30 - 17:30", status: "READY" }
-      ]
+  // TODO: Enable when stats endpoint is available
+  // const { 
+  //   data: statsResponse, 
+  //   isLoading: statsLoading
+  // } = useCampaignStats();
+
+  const campaigns = campaignsResponse?.data || [];
+  const isEmpty = campaigns.length === 0 && !campaignsLoading;
+  const router = useRouter();
+
+  // Debug logging
+  console.log('🔍 Campaigns API Response:', campaignsResponse);
+  console.log('📊 Campaigns Data:', campaigns);
+
+  // Transform API campaign data into calendar events format
+  interface CampaignEvent {
+    date: number;
+    campaigns: Array<{
+      id: number;
+      name: string;
+      schedule: string;
+      status: string;
+    }>;
+  }
+
+  const campaignEvents: CampaignEvent[] = campaigns.reduce((acc: CampaignEvent[], campaign) => {
+    // Use created_at date for calendar positioning
+    const startDate = new Date(campaign.created_at);
+    const date = startDate.getDate();
+    
+    
+    // Find existing entry for this date or create new one
+    let dateEntry = acc.find(entry => entry.date === date);
+    if (!dateEntry) {
+      dateEntry = { 
+        date, 
+        campaigns: [] 
+      };
+      acc.push(dateEntry);
     }
-  ];
+    
+    // Add campaign to the date entry (convert string id to number for calendar compatibility)
+    dateEntry.campaigns.push({
+      id: parseInt(campaign.id.substring(0, 8), 16) || Math.floor(Math.random() * 10000), // Convert hex string to number
+      name: campaign.name,
+      schedule: `${campaign.schedules?.START || '09:00'} - ${campaign.schedules?.END || '17:00'}`,
+      status: 'READY'
+    });
+    
+    return acc;
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -124,14 +98,121 @@ const Campaigns = () => {
   };
 
   const handleSearch = (query: string) => {
-    console.log('Searching for:', query);
-    // Add your search logic here
-    // You can filter campaigns, make API calls, etc.
+    setFilters(prev => ({ ...prev, search: query }));
   };
+
+  const handleCreateCampaign = () => {
+    console.log('Creating new campaign...');
+    // Add campaign creation logic here
+  };
+
+  // Empty State Component
+  const EmptyState = () => (
+    <div className="flex items-center justify-center min-h-[600px]">
+      <div className="text-center max-w-md mx-auto">
+        {/* Logo/Icon */}
+        <div className="mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <Target className="w-10 h-10 text-white" />
+          </div>
+        </div>
+
+        {/* Title and Subtitle */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">
+            Welcome to Campaign Management!
+          </h1>
+          <p className="text-lg text-gray-600">
+            You&apos;re just one step away from launching your first outreach campaign.
+          </p>
+        </div>
+
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-gray-50 rounded-lg p-4 text-center">
+            <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Target className="w-6 h-6 text-gray-600" />
+            </div>
+            <p className="text-sm font-medium text-gray-700">Target your ideal customers</p>
+          </div>
+          
+          <div className="bg-gray-50 rounded-lg p-4 text-center">
+            <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Zap className="w-6 h-6 text-gray-600" />
+            </div>
+            <p className="text-sm font-medium text-gray-700">Automate your outreach</p>
+          </div>
+          
+          <div className="bg-gray-50 rounded-lg p-4 text-center">
+            <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <BarChart3 className="w-6 h-6 text-gray-600" />
+            </div>
+            <p className="text-sm font-medium text-gray-700">Track your results</p>
+          </div>
+        </div>
+
+        {/* CTA Button */}
+        <div className="mb-6">
+          <Button 
+            onClick={() => router.push('/library/sdr/campaigns/create')}
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-3 text-lg font-semibold rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Create Your First Campaign
+          </Button>
+        </div>
+
+        {/* Help Text */}
+        <p className="text-sm text-gray-500 italic">
+          Don&apos;t worry, we&apos;ll guide you through the setup process!
+        </p>
+      </div>
+    </div>
+  );
+
+  // Show loading state while fetching initial data
+  if (campaignsLoading && campaigns.length === 0) {
+    return (
+      <DashboardLayout agentType="sdr">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <RefreshCcw className="w-8 h-8 animate-spin mx-auto mb-4 text-orange-500" />
+            <p className="text-gray-600">Loading campaigns...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show error state if there's an error and no cached data
+  if (campaignsError && campaigns.length === 0) {
+    return (
+      <DashboardLayout agentType="sdr">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Target className="w-8 h-8 text-red-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Campaigns</h3>
+            <p className="text-gray-600 mb-4">There was an error loading your campaigns.</p>
+            <Button 
+              onClick={() => refetchCampaigns()}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <RefreshCcw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout agentType="sdr">
-
+      {isEmpty ? (
+        <EmptyState />
+      ) : (
       <div className="h-full overflow-y-auto pb-8">
         <div className='flex items-center justify-between mb-6'>
           <div className=''>
@@ -142,11 +223,16 @@ const Campaigns = () => {
             <p className='text-sm'>Manage and monitor your outreach campaigns</p>
           </div>
           <div>
-            <Button variant="outline" className='mr-2'>
-              <RefreshCcw className='mr-2 h-4 w-4' />
+              <Button 
+                variant="outline" 
+                className='mr-2'
+                onClick={() => refetchCampaigns()}
+                disabled={campaignsLoading}
+              >
+                <RefreshCcw className={`mr-2 h-4 w-4 ${campaignsLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button className='bg-red-400 hover:bg-red-500 text-white'>
+                <Button className='bg-red-400 hover:bg-red-500 text-white' onClick={() => router.push('/library/sdr/campaigns/create')}>
               <Plus className='h-4 w-4' />
               Create Campagin
             </Button>
@@ -159,8 +245,10 @@ const Campaigns = () => {
               <Target className="text-6xl font-bold text-white" />
             </div>
             <div>
-              <p className=" text-sm font-semibold">2</p>
-              <p className=" text-xs">Total Campaigns</p>
+                <p className="text-sm font-semibold">
+                  {campaigns.length}
+                </p>
+                <p className="text-xs">Total Campaigns</p>
             </div>
           </div>
           <div className='flex gap-x-2 rounded-lg border shadow-sm p-2'>
@@ -168,8 +256,10 @@ const Campaigns = () => {
               <Play className="text-6xl font-bold text-white" />
             </div>
             <div>
-              <p className=" text-sm font-semibold">2</p>
-              <p className=" text-xs">Active Campaigns</p>
+                <p className="text-sm font-semibold">
+                  {campaigns.length}
+                </p>
+                <p className="text-xs">Active Campaigns</p>
             </div>
           </div>
           <div className='flex gap-x-2 rounded-lg border shadow-sm p-2'>
@@ -177,8 +267,10 @@ const Campaigns = () => {
               <Pause className="text-6xl font-bold text-white" />
             </div>
             <div>
-              <p className=" text-sm font-semibold">2</p>
-              <p className=" text-xs">Paused Campaigns</p>
+                <p className="text-sm font-semibold">
+                  0
+                </p>
+                <p className="text-xs">Paused Campaigns</p>
             </div>
           </div>
         </div>
@@ -209,52 +301,79 @@ const Campaigns = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {campaigns.map((campaign) => (
+                {campaignsLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8">
+                      <div className="flex items-center justify-center">
+                        <RefreshCcw className="w-4 h-4 animate-spin mr-2" />
+                        Loading campaigns...
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : campaignsError ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-red-600">
+                      Error loading campaigns. Please try again.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  campaigns.map((campaign) => (
                 <TableRow key={campaign.id} className="hover:bg-gray-50">
                   <TableCell>
                     <div>
                       <div className="font-medium text-gray-900">{campaign.name}</div>
-                      <div className="text-sm text-gray-500">{campaign.date}</div>
+                          <div className="text-sm text-gray-500">
+                            {new Date(campaign.created_at).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric' 
+                            })}
+                          </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {campaign.services.map((service, index) => (
-                        <div key={index} className="flex items-center text-sm text-gray-600">
-                          <Mail className="h-3 w-3 mr-2 text-orange-500" />
-                          {service}
+                      {campaign.integrations?.apps && campaign.integrations.apps.length > 0 ? (
+                        campaign.integrations.apps.map((app, index) => (
+                          <div key={index} className="flex items-center text-sm text-gray-600">
+                            <Mail className="h-3 w-3 mr-2 text-orange-500" />
+                            {app}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Mail className="h-3 w-3 mr-2 text-gray-400" />
+                          No integrations
                         </div>
-                      ))}
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="h-3 w-3 mr-2 text-orange-500" />
-                      {campaign.schedule}
+                      {campaign.schedules?.START} - {campaign.schedules?.END}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(campaign.status)}>
-                      {campaign.status}
+                    <Badge className={getStatusColor('READY')}>
+                      READY
                     </Badge>
                   </TableCell>
-                  {/* <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </TableCell> */}
                 </TableRow>
-              ))}
+                  ))
+                )}
             </TableBody>
           </Table>
         </div>
 
         {/* Campaign Calendar */}
+          {campaignEvents.length > 0 && (
         <CampaignCalendar 
           events={campaignEvents}
           onDateClick={handleDateClick}
         />
+          )}
       </div>
+      )}
     </DashboardLayout>
   );
 };

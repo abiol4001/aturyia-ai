@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Search, Filter, Trash2, Clock, InboxIcon, SendHorizonal, MailCheck, ChevronLeft } from 'lucide-react';
+import { Search, Filter, Trash2, Clock, InboxIcon, SendHorizonal, MailCheck, ChevronLeft, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import EmailDetails from '@/components/dashboard/email-details';
+import { useMailLogs, useApproveEmailLeads, useRejectEmailLeads } from '@/lib/api/hooks/useApi';
+import { MailLogFilters, MailLog } from '@/lib/api/types';
 
 interface Email {
   id: string;
@@ -20,296 +22,285 @@ interface Email {
   avatar: string;
 }
 
-interface Message {
-  id: number;
-  from: string;
-  avatar: string;
-  time: string;
-  subject: string;
-  content: string;
-}
 
 const Inbox = () => {
-  const [selectedEmail, setSelectedEmail] = useState('dan-spitale');
+  const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('inbox');
+  const [filters] = useState<MailLogFilters>({});
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const inboxEmails = [
-    {
-      id: 'dan-spitale',
-      sender: 'Dan Spitale',
-      email: 'Eleena.Kidangen@business2businesslimited.com',
-      subject: '11x.AI Alice Sales Campaign',
-      preview: 'Great campaign, and yes, I am very much interested in this. Before the call, let...',
-      time: '01:42 PM',
-      unread: 1,
-      isSelected: true,
-      avatar: 'DS'
-    },
-  ];
+  // Fetch mail logs and stats from API
+  const { 
+    data: mailLogsResponse, 
+    isLoading: mailLogsLoading, 
+    error: mailLogsError,
+    refetch: refetchMailLogs 
+  } = useMailLogs(filters);
 
-  const approvalEmails = [
-    {
-      id: 'approval-1',
-      sender: 'Sarah Johnson',
-      email: 'sarah@techcorp.com',
-      subject: 'Meeting Request Approval',
-      preview: 'Please approve the meeting request for next week. I need your confirmation...',
-      time: '02:15 PM',
+  // Email approval hooks
+  const approveEmailLeads = useApproveEmailLeads();
+  const rejectEmailLeads = useRejectEmailLeads();
+
+  // TODO: Enable when stats endpoint is available
+  // const { 
+  //   data: statsResponse
+  // } = useMailLogStats();
+
+  const allMailLogs = mailLogsResponse?.data || [];
+  
+  // Client-side filtering for search
+  const filteredMailLogs = allMailLogs.filter(mailLog => {
+    if (!searchQuery) return true;
+    
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      (mailLog.lead_name && mailLog.lead_name.toLowerCase().includes(searchLower)) ||
+      (mailLog.lead_email && mailLog.lead_email.toLowerCase().includes(searchLower)) ||
+      (mailLog.mail_subject && mailLog.mail_subject.toLowerCase().includes(searchLower)) ||
+      (mailLog.campaign_name && mailLog.campaign_name.toLowerCase().includes(searchLower))
+    );
+  });
+  
+  const mailLogs = filteredMailLogs;
+  const stats = null; // Disabled until stats endpoint is available
+
+  // Debug logging
+  console.log('🔍 Mail Logs API Response:', mailLogsResponse);
+  console.log('📧 Mail Logs Data:', mailLogs);
+  console.log('📈 Mail Stats:', stats);
+
+  // Transform API data into email format
+  const transformMailLogToEmail = (mailLog: MailLog): Email => {
+    try {
+      const getInitials = (name: string) => {
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
+      };
+
+      const senderName = mailLog.direction === 'incoming' 
+        ? (mailLog.lead_name || 'Unknown')
+        : 'You';
+
+      // Get the appropriate content based on direction
+      const content = mailLog.direction === 'incoming' 
+        ? (mailLog.lead_mail_content || mailLog.user_mail_content)
+        : mailLog.agent_mail_content;
+
+      // Strip HTML tags for preview
+      const stripHtml = (html: string | null) => {
+        if (!html) return '';
+        return html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+      };
+
+      const previewContent = content ? stripHtml(content) : 'No preview available';
+      const preview = previewContent.length > 100 ? previewContent.substring(0, 100) + '...' : previewContent;
+
+      return {
+        id: mailLog.log_id || 'unknown-id',
+        sender: senderName,
+        email: mailLog.direction === 'incoming' 
+          ? mailLog.lead_email 
+          : mailLog.agent_email || 'agent@company.com',
+        subject: mailLog.mail_subject || 'No Subject',
+        preview: preview || 'No preview available',
+        time: mailLog.created_at ? 
+          new Date(mailLog.created_at).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          }) : 
+          'Unknown time',
+        unread: mailLog.status === 'pending' ? 1 : 0,
+        isSelected: selectedEmail === mailLog.log_id,
+        avatar: mailLog.direction === 'incoming' ? getInitials(senderName) : 'AS'
+      };
+    } catch (error) {
+      console.error('Error transforming mail log:', error, mailLog);
+      // Return a fallback email object
+      return {
+        id: mailLog.log_id || 'error-id',
+        sender: 'Unknown',
+        email: 'unknown@email.com',
+        subject: 'Error loading email',
+        preview: 'There was an error loading this email',
+        time: 'Unknown time',
       unread: 0,
       isSelected: false,
-      avatar: 'SJ'
-    },
-    {
-      id: 'approval-2',
-      sender: 'Mike Chen',
-      email: 'mike@startup.com',
-      subject: 'Budget Approval Required',
-      preview: 'The quarterly budget needs your approval before we can proceed with...',
-      time: '01:30 PM',
-      unread: 1,
-      isSelected: false,
-      avatar: 'MC'
-    }
-  ];
-
-  const sentEmails = [
-    {
-      id: 'sent-1',
-      sender: 'You',
-      email: 'acme@company.com',
-      subject: 'Follow-up on Meeting',
-      preview: 'Thank you for the great meeting yesterday. As discussed, I will send...',
-      time: '11:20 AM',
-      unread: 0,
-      isSelected: false,
-      avatar: 'AS'
-    },
-    {
-      id: 'sent-2',
-      sender: 'You',
-      email: 'acme@company.com',
-      subject: 'Proposal Attached',
-      preview: 'Please find the proposal attached. Let me know if you have any questions...',
-      time: '10:45 AM',
-      unread: 0,
-      isSelected: false,
-      avatar: 'AS'
-    }
-  ];
-
-  const emailThread: Record<string, { subject: string; sender: string; email: string; messages: Message[] }> = {
-    'dan-spitale': {
-      subject: 'Sales Campaign',
-      sender: 'Lorem Ipsum',
-      email: 'lorem.ipsum@email.com',
-      messages: [
-        {
-          id: 1,
-          from: 'Acme SDR',
-          avatar: 'AS',
-          time: '12:38 PM',
-          subject: 'Dan — 20-30 min to cut SDR admin & book 30% more meetings with Alice',
-          content: `Hi Dan,
-
-Open To New Opportunities as VP of Sales / Chief Revenue Officer / Chief Commercial Officer
-
-I noticed you're open to new opportunities in sales leadership. I wanted to reach out because I think you'd be interested in what we're doing at 11x.ai.
-
-We've been working on solving some of the biggest challenges in SaaS and enterprise software:
-
-• lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.
-• Lorem ipsum dolor sit amet
-
-
-We built Alice, an AI SDR that handles the entire outbound process - from research to personalized outreach to follow-up. Our pilot customers saw ~30% more meetings and 50% less admin.
-
-Would you be available for a 20-30 minute call next week? I can do:
-• Tue, Sep 9 at 10:00 AM PT
-• Thu, Sep 11 at 11:00 AM PT
-
-Best regards,
-Acme SDR Sales
-Acme Corporation`
-        },
-        {
-          id: 2,
-          from: 'Dan Spitale',
-          avatar: 'DS',
-          time: '01:42 PM',
-          subject: 'Re: Dan - 20-30 min to cut SDR admin & book 30% more meetings with Alice',
-          content: `Great campaign, and yes, I am very much interested in this. Before the call, let me know if there is anything I should be prepared for before the call.
-
-Best,`
-        }
-      ]
-    },
-    'approval-1': {
-      subject: 'Meeting Request Approval',
-      sender: 'Sarah Johnson',
-      email: 'sarah@techcorp.com',
-      messages: [
-        {
-          id: 1,
-          from: 'Sarah Johnson',
-          avatar: 'SJ',
-          time: '02:15 PM',
-          subject: 'Meeting Request Approval - Q4 Planning Session',
-          content: `Hi Team,
-
-I need approval for the Q4 planning session meeting request. Here are the details:
-
-Meeting Details:
-• Date: October 15th, 2025
-• Time: 2:00 PM - 4:00 PM EST
-• Attendees: Sales Team, Marketing Team, Product Team
-• Location: Conference Room A (or virtual)
-
-Agenda:
-• Q4 revenue targets review
-• Marketing campaign planning
-• Product roadmap discussion
-• Resource allocation
-
-Please confirm your availability and let me know if any changes are needed.
-
-Thanks,
-Sarah`
-        },
-        {
-          id: 2,
-          from: 'You',
-          avatar: 'AS',
-          time: '02:30 PM',
-          subject: 'Re: Meeting Request Approval - Q4 Planning Session',
-          content: `Hi Sarah,
-
-Approved! The meeting looks good. I'll send out the calendar invites to all attendees.
-
-Best regards,
-Acme SDR`
-        }
-      ]
-    },
-    'approval-2': {
-      subject: 'Budget Approval Required',
-      sender: 'Mike Chen',
-      email: 'mike@startup.com',
-      messages: [
-        {
-          id: 1,
-          from: 'Mike Chen',
-          avatar: 'MC',
-          time: '01:30 PM',
-          subject: 'Q4 Marketing Budget Approval - $50,000',
-          content: `Hi Team,
-
-I need approval for the Q4 marketing budget allocation. Here's the breakdown:
-
-Budget Allocation:
-• Digital Marketing: $25,000
-• Content Creation: $10,000
-• Events & Conferences: $8,000
-
-Please review and approve by end of week.
-
-Thanks,
-Mike`
-        }
-      ]
-    },
-    'sent-1': {
-      subject: 'Follow-up on Meeting',
-      sender: 'You',
-      email: 'acme@company.com',
-      messages: [
-        {
-          id: 1,
-          from: 'You',
-          avatar: 'AS',
-          time: '11:20 AM',
-          subject: 'Follow-up on Meeting - Next Steps',
-          content: `Hi Team,
-
-Thank you for the productive meeting yesterday. Here's a summary of our discussion and next steps:
-
-Key Takeaways:
-• Q4 targets are ambitious but achievable
-• Marketing budget approved for additional campaigns
-• Product roadmap aligned with sales goals
-• New hire onboarding process improved
-
-Next Steps:
-• Sarah: Finalize marketing campaign details by Friday
-• Mike: Prepare budget breakdown for Q1 2026
-• John: Schedule follow-up with key prospects
-• All: Review and provide feedback on new proposal template
-
-Let me know if you have any questions or need clarification on any points.
-
-Best regards,
-Acme SDR`
-        },
-        {
-          id: 2,
-          from: 'Sarah Johnson',
-          avatar: 'SJ',
-          time: '11:45 AM',
-          subject: 'Re: Follow-up on Meeting - Next Steps',
-          content: `Thanks for the summary! I'll have the marketing campaign details ready by Friday.
-
-Sarah`
-        }
-      ]
-    },
-    'sent-2': {
-      subject: 'Proposal Attached',
-      sender: 'You',
-      email: 'acme@company.com',
-      messages: [
-        {
-          id: 1,
-          from: 'You',
-          avatar: 'AS',
-          time: '10:45 AM',
-          subject: 'Proposal Attached - Enterprise Solution Package',
-          content: `Hi Team,
-
-Please find the attached proposal for our Enterprise Solution Package. This comprehensive proposal includes:
-
-Package Details:
-• AI-powered lead generation
-• Automated follow-up sequences
-• Advanced analytics dashboard
-• Dedicated account manager
-• 24/7 support
-
-Pricing:
-• Setup fee: $5,000
-• Monthly subscription: $2,500
-• Additional features: Custom pricing
-
-Timeline:
-• Implementation: 2-3 weeks
-• Training: 1 week
-• Go-live: End of month
-
-Please review and let me know if you need any modifications or have questions.
-
-Best regards,
-Acme SDR`
-        }
-      ]
+        avatar: '?'
+      };
     }
   };
 
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    setSelectedEmail(''); // Deselect email when switching tabs
+  // Filter emails based on active tab
+  const getFilteredEmails = () => {
+    const emails = mailLogs.map(transformMailLogToEmail);
+    
+    switch (activeTab) {
+      case 'inbox':
+        // Inbox shows incoming emails (from leads)
+        return emails.filter(email => 
+          email.sender !== 'You'
+        );
+      case 'approval':
+        // Approvals show outgoing emails with pending status
+        return emails.filter(email => 
+          email.sender === 'You'
+        );
+      case 'sent':
+        // Sent shows completed/delivered emails
+        return emails.filter(email => 
+          email.sender === 'You' && email.unread === 0
+        );
+      default:
+        return emails;
+    }
   };
+
+  const inboxEmails = getFilteredEmails();
+  const approvalEmails = mailLogs
+    .filter(log => log.direction === 'outgoing' && log.status === 'pending')
+    .map(transformMailLogToEmail);
+  const sentEmails = mailLogs
+    .filter(log => log.direction === 'outgoing' && log.status !== 'pending')
+    .map(transformMailLogToEmail);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    // Client-side filtering, no need to update API filters
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setSelectedEmail(null);
+  };
+
+  const handleApproveEmail = async (emailId: string) => {
+    try {
+      await approveEmailLeads.mutateAsync([emailId]);
+      console.log('Email approved successfully');
+    } catch (error) {
+      console.error('Error approving email:', error);
+    }
+  };
+
+  const handleRejectEmail = async (emailId: string) => {
+    try {
+      await rejectEmailLeads.mutateAsync([emailId]);
+      console.log('Email rejected successfully');
+    } catch (error) {
+      console.error('Error rejecting email:', error);
+    }
+  };
+
+  // Removed handleBulkApprove function as it's not being used
+
+  // Generate email thread data from API response
+  const getEmailThread = (emailId: string) => {
+    const mailLog = mailLogs.find(log => log.log_id === emailId);
+    if (!mailLog) return null;
+
+    const getInitials = (name: string) => {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    };
+
+    const senderName = mailLog.direction === 'incoming' 
+      ? (mailLog.lead_name || 'Unknown')
+      : 'You';
+
+    // Strip HTML tags for display
+    const stripHtml = (html: string | null) => {
+      if (!html) return '';
+      return html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    };
+
+    // If there's a thread_id, get all messages in the thread
+    let threadMessages = [];
+    if (mailLog.thread_id) {
+      const threadLogs = mailLogs.filter(log => log.thread_id === mailLog.thread_id);
+      threadMessages = threadLogs.map((log, index) => {
+        const logSenderName = log.direction === 'incoming' 
+          ? (log.lead_name || 'Unknown')
+          : 'You';
+        
+        const logContent = log.direction === 'incoming' 
+          ? (log.lead_mail_content || log.user_mail_content)
+          : log.agent_mail_content;
+
+        return {
+          id: index + 1,
+          from: logSenderName,
+          avatar: getInitials(logSenderName),
+          time: log.created_at ? 
+            new Date(log.created_at).toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              hour12: true 
+            }) : 
+            'Unknown time',
+          subject: log.mail_subject || 'No Subject',
+          content: logContent ? stripHtml(logContent) : 'No content available'
+        };
+      });
+    } else {
+      // Single message thread
+      const content = mailLog.direction === 'incoming' 
+        ? (mailLog.lead_mail_content || mailLog.user_mail_content)
+        : mailLog.agent_mail_content;
+
+      threadMessages = [{
+          id: 1,
+        from: senderName,
+        avatar: getInitials(senderName),
+        time: mailLog.created_at ? 
+          new Date(mailLog.created_at).toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+          }) : 
+          'Unknown time',
+        subject: mailLog.mail_subject || 'No Subject',
+        content: content ? stripHtml(content) : 'No content available'
+      }];
+    }
+
+    return {
+      subject: mailLog.mail_subject || 'No Subject',
+      sender: senderName,
+      email: mailLog.direction === 'incoming' 
+        ? mailLog.lead_email 
+        : mailLog.agent_email || 'agent@company.com',
+      messages: threadMessages
+    };
+  };
+
+
 
   const renderEmailList = (emails: Email[]) => (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-200px)]">
+      {mailLogsLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <RefreshCcw className="w-6 h-6 animate-spin mx-auto mb-2 text-orange-500" />
+            <p className="text-sm text-gray-600">Loading emails...</p>
+          </div>
+        </div>
+      ) : mailLogsError ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+              <InboxIcon className="w-6 h-6 text-red-500" />
+            </div>
+            <p className="text-sm text-red-600">Error loading emails</p>
+          </div>
+        </div>
+      ) : emails.length === 0 ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <InboxIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">No emails found</p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-0">
       {emails.map((email) => (
         <div
           key={email.id}
@@ -333,7 +324,12 @@ Acme SDR`
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
                 <h3 className="font-medium text-gray-900 truncate">{email.sender}</h3>
+                      <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                        {mailLogs.find(log => log.log_id === email.id)?.service || 'Email'}
+                      </span>
+                    </div>
                 <span className="text-xs text-gray-500">{email.time}</span>
               </div>
               <p className="text-sm text-gray-600 mt-1 line-clamp-2">{email.preview}</p>
@@ -341,6 +337,8 @@ Acme SDR`
           </div>
         </div>
       ))}
+        </div>
+      )}
     </div>
   );
 
@@ -351,9 +349,9 @@ Acme SDR`
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left Sidebar - Email List */}
-          <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
+          <div className="w-96 bg-white border-r border-gray-200 flex flex-col h-full">
             {/* Sticky Header */}
-            <div className="sticky top-0 bg-white z-10 px-2 pt-2">
+            <div className="sticky top-0 bg-white z-10 px-2 pt-2 flex-shrink-0">
               <TabsList className="bg-gray-100 w-full">
                 <TabsTrigger value="inbox" className="data-[state=active]:bg-white data-[state=active]:text-orange-500">
                   <InboxIcon className="h-4 w-4" />
@@ -374,11 +372,22 @@ Acme SDR`
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input 
-                    placeholder="Search leads..." 
+                    placeholder="Search emails..." 
                     className="pl-8 border-none outline-none"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
                   />
                 </div>
                 <div className="flex items-center space-x-1.5">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6"
+                    onClick={() => refetchMailLogs()}
+                    disabled={mailLogsLoading}
+                  >
+                    <RefreshCcw className={`h-3 w-3 ${mailLogsLoading ? 'animate-spin' : ''}`} />
+                  </Button>
                   <Button variant="ghost" size="icon" className="h-6 w-6">
                     <Filter className="h-3 w-3" />
                   </Button>
@@ -395,22 +404,24 @@ Acme SDR`
               </div>
             </div>
 
-              {/* Tab Content for Email Lists */}
-              <TabsContent value="inbox" className="flex-1 flex flex-col m-0">
+            {/* Scrollable Email List Container */}
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="inbox" className="h-full m-0">
                 {renderEmailList(inboxEmails)}
               </TabsContent>
-              <TabsContent value="approvals" className="flex-1 flex flex-col m-0">
+              <TabsContent value="approvals" className="h-full m-0">
                 {renderEmailList(approvalEmails)}
               </TabsContent>
-              <TabsContent value="sent" className="flex-1 flex flex-col m-0">
+              <TabsContent value="sent" className="h-full m-0">
                 {renderEmailList(sentEmails)}
               </TabsContent>
+            </div>
             </div>
 
           {/* Right Main Content - Email Details */}
           <EmailDetails
             selectedEmail={selectedEmail}
-            emailThread={emailThread}
+            emailThread={selectedEmail && getEmailThread(selectedEmail) ? { [selectedEmail]: getEmailThread(selectedEmail)! } : {}}
             variant={activeTab as 'inbox' | 'approvals' | 'sent'}
             onReply={() => console.log('Reply clicked')}
             onForward={() => console.log('Forward clicked')}
@@ -418,12 +429,10 @@ Acme SDR`
             onStar={() => console.log('Star clicked')}
             onDelete={() => console.log('Delete clicked')}
             onMore={() => console.log('More clicked')}
-            onApprove={() => console.log('Approve clicked')}
-            onReject={() => console.log('Reject clicked')}
+            onApprove={() => selectedEmail && handleApproveEmail(selectedEmail)}
+            onReject={() => selectedEmail && handleRejectEmail(selectedEmail)}
             onEdit={() => console.log('Edit clicked')}
             onMail={() => console.log('Mail clicked')}
-            onResend={() => console.log('Resend clicked')}
-            onSchedule={() => console.log('Schedule clicked')}
           />
         </div>
       </Tabs>

@@ -1,50 +1,51 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User } from '@supabase/supabase-js';
-import UserMenu from '@/components/auth/UserMenu';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Search, Settings, Mail, BarChart2, CalendarClock, Megaphone, Headphones, FileSearch, ArrowRightCircle, Target } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AgentProfileModal from '@/components/AgentProfileModal';
+import { useSdrAgentConfig } from '@/lib/store';
+import { useSdrAgentWorkflow } from '@/lib/api/hooks/useApi';
 
 const Dashboard = () => {
-  const [user, setUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
+  
+  // Get SDR agent configuration state
+  const { isConfigured } = useSdrAgentConfig();
+  const { launchAgent, isLaunching, launchError } = useSdrAgentWorkflow();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient();
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error || !session?.user) {
-        router.push('/login');
-        return;
+  // Open profile modal for configuration
+  const handleOpenProfileModal = () => {
+    setIsModalOpen(true);
+  };
+
+  // Handle launch agent
+  const handleLaunchAgent = () => {
+    launchAgent(undefined, {
+      onSuccess: () => {
+        console.log('Agent launched successfully, navigating to dashboard');
+        router.push('/library/sdr/campaigns');
+      },
+      onError: (error: unknown) => {
+        console.error('Failed to launch agent:', error);
       }
-      
-      setUser(session.user);
-    };
-
-    checkAuth();
-  }, [router]);
-
-  if (!user) {
-    return <div>Loading...</div>;
-  }
+    });
+  };
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Agent Library</h1>
+    <DashboardLayout agentType="sdr">
+      <div className="p-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Agent Library</h1>
+          </div>
         </div>
-        <UserMenu userEmail={user.email || ''} />
-      </div>
 
 
       <div className='border-[0.5px] rounded-lg p-4 pb-24 mt-8'>
@@ -112,21 +113,33 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 justify-start p-4 md:p-6">
-                <Button 
-                className="bg-amber-500 hover:bg-orange-600 text-white h-9 px-6 w-24"
-                onClick={()=> router.push('/library/sdr/campaigns')}
-                >
-                  Launch
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="h-9 px-6 w-32"
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Configure
-                </Button>
+              <div className="flex flex-col gap-3 p-4 md:p-6">
+                {/* Error display */}
+                {launchError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-sm text-red-700">
+                      Failed to launch agent. Please try again.
+                    </p>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-2 justify-start">
+                  <Button 
+                    className="bg-amber-500 hover:bg-orange-600 text-white h-9 px-6 w-24 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleLaunchAgent}
+                    disabled={!isConfigured || isLaunching}
+                  >
+                    {isLaunching ? 'Launching...' : 'Launch'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="h-9 px-6 w-32"
+                    onClick={handleOpenProfileModal}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Configure
+                  </Button>
+                </div>
               </div>
             </Card>
 
@@ -195,11 +208,18 @@ const Dashboard = () => {
       </div>
 
       {/* Agent Profile Modal */}
-      <AgentProfileModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-      />
-    </div>
+        <AgentProfileModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => {
+            // Configuration and profile setup completed successfully
+            console.log('SDR Agent configured and profile setup successfully');
+            // The store will be updated by the modal's internal logic
+            // The Launch button will now be enabled
+          }}
+        />
+      </div>
+    </DashboardLayout>
   );
 };
 

@@ -19,7 +19,7 @@ import Image from 'next/image';
 
 interface SidebarProps {
   agentType?: 'sdr' | 'custom';
-  user: User;
+  user?: User | null;
 }
 
 interface NavItem {
@@ -76,7 +76,7 @@ export default function Sidebar({ agentType = 'sdr', user }: SidebarProps) {
           </h3>
           <nav className="space-y-1">
             {outboundItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <Link
                   key={item.name}
@@ -103,7 +103,7 @@ export default function Sidebar({ agentType = 'sdr', user }: SidebarProps) {
           </h3>
           <nav className="space-y-1">
             {managementItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <Link
                   key={item.name}

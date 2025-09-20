@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Star, Trash2, MoreVertical, ChevronDown, Reply, Forward, Mail, X, Check, Edit, Clock } from 'lucide-react';
+import { Star, Trash2, MoreVertical, ChevronDown, Reply, Forward, Mail, X, Check, Edit } from 'lucide-react';
 
 interface Message {
   id: number;
@@ -39,8 +39,8 @@ interface EmailDetailsProps {
   onEdit?: () => void;
   onMail?: () => void;
   // Sent-specific callbacks
-  onResend?: () => void;
-  onSchedule?: () => void;
+  // onResend?: () => void;
+  // onSchedule?: () => void;
   // Custom styling
   headerActions?: React.ReactNode;
   footerActions?: React.ReactNode;
@@ -60,8 +60,8 @@ export default function EmailDetails({
   onReject,
   onEdit,
   onMail,
-  onResend,
-  onSchedule,
+  // onResend,
+  // onSchedule,
   headerActions,
   footerActions
 }: EmailDetailsProps) {
