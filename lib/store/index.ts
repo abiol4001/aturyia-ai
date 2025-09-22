@@ -29,6 +29,8 @@ export {
   useSubmitICP,
   useKnowledgeBaseFiles,
   useUploadKnowledgeBase,
+  useCampaignDetails,
+  useApproveLeads,
   useSdrAgentConfig as useSdrAgentConfigApi,
   useSdrAgentWorkflow,
   useSdrAgentStatus

@@ -14,7 +14,9 @@ import {
   MailLog,
   MailLogFilters,
   MailLogStats,
-  KnowledgeBaseFile
+  KnowledgeBaseFile,
+  CampaignDetails,
+  LeadApprovalRequest
 } from '../types';
 import {
   getUserId,
@@ -575,6 +577,68 @@ export const sdrService = {
       return response;
     } catch (error) {
       console.error('Error fetching knowledge base files:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get campaign details
+   * GET /users/{user_id}/agents/sdr/{agent_id}/campaigns/{campaign_id}/details
+   */
+  getCampaignDetails: async (campaignId: string): Promise<ApiResponse<CampaignDetails>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/campaigns/${campaignId}/details`;
+
+    try {
+      const response = await api.get<ApiResponse<CampaignDetails>>(url);
+      console.log('🔍 getCampaignDetails API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching campaign details:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Approve leads
+   * POST /users/{user_id}/agents/sdr/{agent_id}/approve-leads
+   */
+  approveLeads: async (leads: Lead[]): Promise<ApiResponse<unknown>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/approve-leads`;
+
+    // Transform leads to the required format
+    const leadsData = leads.map(lead => ({
+      lead_id: lead.lead_id,
+      agent_id: lead.agent_id,
+      campaign_id: lead.campaign_id,
+      campaign_name: lead.campaign_name,
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone || '',
+      organization: lead.organization,
+      designation: lead.designation,
+      linkedin_url: lead.linkedin_url || '',
+      website: lead.website || '',
+      contact_method: ['email'], // Default contact method
+      status: lead.status,
+      task_id: lead.task_id,
+      task_status: lead.task_status
+    }));
+
+    const requestBody: LeadApprovalRequest = {
+      user_id: userId,
+      leads: leadsData
+    };
+
+    try {
+      const response = await api.post<ApiResponse<unknown>>(url, requestBody);
+      console.log('🔍 approveLeads API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error approving leads:', error);
       throw error;
     }
   }

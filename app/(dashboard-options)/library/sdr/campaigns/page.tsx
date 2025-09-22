@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Pause, Play, Plus, RefreshCcw, Target, Mail, Clock, Zap, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -97,14 +97,10 @@ const Campaigns = () => {
     // Add your date click logic here
   };
 
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     setFilters(prev => ({ ...prev, search: query }));
-  };
+  }, []);
 
-  const handleCreateCampaign = () => {
-    console.log('Creating new campaign...');
-    // Add campaign creation logic here
-  };
 
   // Empty State Component
   const EmptyState = () => (
@@ -318,7 +314,7 @@ const Campaigns = () => {
                   </TableRow>
                 ) : (
                   campaigns.map((campaign) => (
-                <TableRow key={campaign.id} className="hover:bg-gray-50">
+                <TableRow key={campaign.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/library/sdr/campaigns/${campaign.id}`)}>
                   <TableCell>
                     <div>
                       <div className="font-medium text-gray-900">{campaign.name}</div>
@@ -334,8 +330,8 @@ const Campaigns = () => {
                     <div className="space-y-1">
                       {campaign.integrations?.apps && campaign.integrations.apps.length > 0 ? (
                         campaign.integrations.apps.map((app, index) => (
-                          <div key={index} className="flex items-center text-sm text-gray-600">
-                            <Mail className="h-3 w-3 mr-2 text-orange-500" />
+                        <div key={index} className="flex items-center text-sm text-gray-600">
+                          <Mail className="h-3 w-3 mr-2 text-orange-500" />
                             {app}
                           </div>
                         ))

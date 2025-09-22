@@ -19,12 +19,12 @@ import {
   ArrowUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useKnowledgeBaseFiles, useUploadKnowledgeBase } from '@/lib/api/hooks/useApi';
 import KnowledgeBaseUpload from '@/components/KnowledgeBaseUpload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import SearchInput from '@/components/ui/search-input';
 
 const KnowledgeBase = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,7 +54,7 @@ const KnowledgeBase = () => {
 
   // Filter files based on active filter and search query
   const filteredFiles = files.filter(file => {
-    const matchesSearch = file.filename.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = !searchQuery || searchQuery.trim() === '' || file.filename.toLowerCase().includes(searchQuery.toLowerCase());
     const fileType = getFileType(file.filename).toLowerCase();
     
     let matchesFilter = true;
@@ -231,15 +231,12 @@ const KnowledgeBase = () => {
             <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search files..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-64"
-              />
-            </div>
+            <SearchInput
+              placeholder="Search files..."
+              onSearch={setSearchQuery}
+              className="w-64"
+              defaultValue={searchQuery}
+            />
 
             {/* File Type Filters */}
             <div className="flex items-center space-x-2">

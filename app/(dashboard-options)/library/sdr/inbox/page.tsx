@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Search, Filter, Trash2, Clock, InboxIcon, SendHorizonal, MailCheck, ChevronLeft, RefreshCcw } from 'lucide-react';
+import { Filter, Trash2, Clock, InboxIcon, SendHorizonal, MailCheck, ChevronLeft, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import EmailDetails from '@/components/dashboard/email-details';
 import { useMailLogs, useApproveEmailLeads, useRejectEmailLeads } from '@/lib/api/hooks/useApi';
 import { MailLogFilters, MailLog } from '@/lib/api/types';
+import SearchInput from '@/components/ui/search-input';
 
 interface Email {
   id: string;
@@ -50,7 +50,7 @@ const Inbox = () => {
   
   // Client-side filtering for search
   const filteredMailLogs = allMailLogs.filter(mailLog => {
-    if (!searchQuery) return true;
+    if (!searchQuery || searchQuery.trim() === '') return true;
     
     const searchLower = searchQuery.toLowerCase();
     return (
@@ -163,10 +163,10 @@ const Inbox = () => {
     .filter(log => log.direction === 'outgoing' && log.status !== 'pending')
     .map(transformMailLogToEmail);
 
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     // Client-side filtering, no need to update API filters
-  };
+  }, []);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -369,15 +369,12 @@ const Inbox = () => {
 
               {/* Search and Filters */}
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input 
-                    placeholder="Search emails..." 
-                    className="pl-8 border-none outline-none"
-                    value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
-                  />
-                </div>
+                <SearchInput
+                  placeholder="Search emails..."
+                  onSearch={handleSearch}
+                  className="flex-1"
+                  defaultValue={searchQuery}
+                />
                 <div className="flex items-center space-x-1.5">
                   <Button 
                     variant="ghost" 

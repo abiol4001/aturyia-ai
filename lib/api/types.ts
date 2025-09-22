@@ -240,3 +240,113 @@ export interface KnowledgeBaseFile {
   size: number;
   modified_at: string;
 }
+
+// Campaign Details Types
+export interface CampaignDetails {
+  campaign_id: string;
+  campaign_name: string;
+  emails: string;
+  phones: string;
+  calendars: string;
+  schedules: string;
+  created_at: string;
+  leads: CampaignLead[];
+  icp: CampaignICP;
+}
+
+export interface CampaignLead {
+  lead: {
+    lead_id: string;
+    name: string;
+    email: string;
+    phone: string;
+    organization: string;
+    designation: string;
+    linkedin_url: string;
+    website: string;
+    status: string;
+  };
+  email_logs: EmailLog[];
+}
+
+export interface EmailLog {
+  log_id: string;
+  campaign_id: string;
+  campaign_name: string;
+  task_id: string;
+  lead_id: string;
+  lead_name: string;
+  lead_email: string;
+  mail_subject: string;
+  agent_email: string;
+  agent_mail_content: string;
+  lead_mail_content: string;
+  user_mail_content: string;
+  files: string[];
+  status: string;
+  response_received: boolean;
+  thread_id: string;
+  message_id: string;
+  direction: string;
+  service: string;
+  created_at: string;
+  user_name: string;
+  google_event_id: string;
+  google_event_link: string;
+  scheduled_start_time: string;
+  scheduled_end_time: string;
+  timezone: string;
+  meeting_duration_minutes: number;
+  is_recurring: boolean;
+  recurring_pattern: string;
+  meeting_response_status: string;
+  response_timestamp: string;
+}
+
+export interface CampaignICP {
+  industry: string;
+  company_size: string;
+  revenue: string;
+  locations: string;
+  location_reason: string;
+  startup_stage: string;
+  seed_stage: string;
+  growth_stage: string;
+  expansion_stage: string;
+  maturity_stage: string;
+  decline_renewal_stage: string;
+  decision_maker_titles: string;
+  decision_maker_responsibilities: string;
+  product_name: string;
+  product_org: string;
+  product_website: string;
+  product_overview: string;
+  pain_points: string;
+  goals: string;
+  value_proposition: string;
+  proof_points: string;
+}
+
+// Lead Approval Types
+export interface LeadApprovalRequest {
+  user_id: string;
+  leads: LeadApprovalData[];
+}
+
+export interface LeadApprovalData {
+  lead_id: string;
+  agent_id: string;
+  campaign_id: string;
+  campaign_name: string;
+  name: string;
+  email: string;
+  phone: string;
+  organization: string;
+  designation: string;
+  linkedin_url: string;
+  website: string;
+  contact_method: string[];
+  status: string;
+  task_id: string;
+  task_status: string;
+}

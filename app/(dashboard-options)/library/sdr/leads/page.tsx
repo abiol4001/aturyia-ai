@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Search, Filter, Mail, Linkedin, Check, X, ChevronDown, RefreshCcw } from 'lucide-react';
+import { Filter, Mail, Linkedin, Check, X, ChevronDown, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useLeads } from '@/lib/api/hooks/useApi';
+import { useLeads, useApproveLeads } from '@/lib/api/hooks/useApi';
 import { LeadFilters } from '@/lib/api/types';
+import SearchInput from '@/components/ui/search-input';
 
 const Leads = () => {
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
@@ -24,6 +24,9 @@ const Leads = () => {
     refetch: refetchLeads 
   } = useLeads(filters);
 
+  // Approve leads mutation
+  const approveLeadsMutation = useApproveLeads();
+
   // TODO: Enable when lead stats endpoint is available
   // const { 
   //   data: statsResponse, 
@@ -34,7 +37,7 @@ const Leads = () => {
   
   // Client-side filtering for search
   const filteredLeads = allLeads.filter(lead => {
-    if (!searchQuery) return true;
+    if (!searchQuery || searchQuery.trim() === '') return true;
     
     const searchLower = searchQuery.toLowerCase();
     return (
@@ -48,6 +51,35 @@ const Leads = () => {
   
   const leads = filteredLeads;
   const isEmpty = leads.length === 0 && !leadsLoading;
+
+  // Handle individual lead approval
+  const handleApproveLead = async (leadId: string) => {
+    const leadToApprove = leads.find(lead => lead.lead_id === leadId);
+    if (!leadToApprove) return;
+
+    try {
+      await approveLeadsMutation.mutateAsync([leadToApprove]);
+      // Remove from selected leads if it was selected
+      setSelectedLeads(prev => prev.filter(id => id !== leadId));
+    } catch (error) {
+      console.error('Error approving lead:', error);
+    }
+  };
+
+  // Handle bulk lead approval
+  const handleApproveSelected = async () => {
+    if (selectedLeads.length === 0) return;
+
+    const leadsToApprove = leads.filter(lead => selectedLeads.includes(lead.lead_id));
+    
+    try {
+      await approveLeadsMutation.mutateAsync(leadsToApprove);
+      setSelectedLeads([]);
+      setSelectAll(false);
+    } catch (error) {
+      console.error('Error approving leads:', error);
+    }
+  };
 
   // Debug logging
   console.log('🔍 Leads API Response:', leadsResponse);
@@ -74,10 +106,10 @@ const Leads = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     // Client-side filtering, no need to update API filters
-  };
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -110,23 +142,12 @@ const Leads = () => {
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input 
+            <SearchInput
                 placeholder="Search by name or email..." 
-                className="pl-10 pr-10 w-64"
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => handleSearch('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
+              onSearch={handleSearch}
+              className="w-64"
+              defaultValue={searchQuery}
+            />
             <Button 
               variant="outline" 
               size="icon"
@@ -141,29 +162,61 @@ const Leads = () => {
           </div>
         </div>
 
+        {/* Bulk Actions */}
+        {selectedLeads.length > 0 && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-orange-800">
+                  {selectedLeads.length} lead{selectedLeads.length > 1 ? 's' : ''} selected
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  onClick={handleApproveSelected}
+                  disabled={approveLeadsMutation.isPending}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  {approveLeadsMutation.isPending ? 'Approving...' : 'Approve Selected'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedLeads([]);
+                    setSelectAll(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Table */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="max-h-[500px] overflow-y-auto">
-            <Table>
-              <TableHeader className="bg-orange-500 sticky top-0 z-10">
-                <TableRow className="border-orange-500 hover:bg-orange-500">
+          <Table>
+            <TableHeader className="bg-orange-500 sticky top-0 z-10">
+              <TableRow className="border-orange-500 hover:bg-orange-500">
                   <TableHead className="text-white font-medium w-12">
-                    <Checkbox 
-                      checked={selectAll}
-                      onCheckedChange={handleSelectAll}
-                      className="border-white data-[state=checked]:bg-white data-[state=checked]:text-orange-500"
-                    />
-                  </TableHead>
+                  <Checkbox 
+                    checked={selectAll}
+                    onCheckedChange={handleSelectAll}
+                    className="border-white data-[state=checked]:bg-white data-[state=checked]:text-orange-500"
+                  />
+                </TableHead>
                   <TableHead className="text-white font-medium">Name & Contact</TableHead>
-                  <TableHead className="text-white font-medium w-24">Status</TableHead>
-                  <TableHead className="text-white font-medium w-48">Organisation</TableHead>
-                  <TableHead className="text-white font-medium w-32 flex items-center">
-                    Last Contact
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </TableHead>
+                <TableHead className="text-white font-medium w-24">Status</TableHead>
+                <TableHead className="text-white font-medium w-48">Organisation</TableHead>
+                <TableHead className="text-white font-medium w-32 flex items-center">
+                  Last Contact
+                  <ChevronDown className="ml-1 h-4 w-4" />
+                </TableHead>
                   <TableHead className="text-white font-medium w-32">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+              </TableRow>
+            </TableHeader>
               <TableBody>
                 {leadsLoading ? (
                   <TableRow>
@@ -194,18 +247,18 @@ const Leads = () => {
                           checked={selectedLeads.includes(lead.lead_id)}
                           onCheckedChange={(checked) => handleSelectLead(lead.lead_id, checked as boolean)}
                         />
-                      </TableCell>
-                      
-                      {/* Name Column */}
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-semibold text-sm">
-                              {getInitials(lead.name)}
-                            </span>
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900">{lead.name}</div>
+                    </TableCell>
+                    
+                    {/* Name Column */}
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
+                            {getInitials(lead.name)}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{lead.name}</div>
                             <div className="text-sm text-gray-600 flex items-center gap-x-1">
                               <Mail className="h-4 w-4 " />
                               {lead.email}
@@ -217,18 +270,18 @@ const Leads = () => {
                             {lead.phone && (
                               <div className="text-xs text-gray-500">{lead.phone}</div>
                             )}
-                          </div>
                         </div>
-                      </TableCell>
+                      </div>
+                    </TableCell>
 
-                      {/* Status Column */}
+                    {/* Status Column */}
                       <TableCell className="w-24">
                         <span className={`uppercase inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(lead.status)}`}>
-                          {lead.status}
-                        </span>
-                      </TableCell>
+                        {lead.status}
+                      </span>
+                    </TableCell>
 
-                      {/* Organisation Column */}
+                    {/* Organisation Column */}
                       <TableCell className="w-48 text-sm text-gray-900">
                         <div>
                           <div className="font-medium">{lead.organization}</div>
@@ -242,31 +295,38 @@ const Leads = () => {
                           month: 'short', 
                           day: 'numeric' 
                         })}
-                      </TableCell>
+                    </TableCell>
 
-                      {/* Actions Column */}
+                    {/* Actions Column */}
                       <TableCell className="w-32">
-                        <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Mail className="h-4 w-4 text-gray-600" />
-                          </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Mail className="h-4 w-4 text-gray-600" />
+                        </Button>
                           <Button 
                             variant="ghost" 
                             size="icon" 
                             className="h-8 w-8"
                             onClick={() => window.open(lead.linkedin_url, '_blank')}
                           >
-                            <Linkedin className="h-4 w-4 text-blue-600" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Check className="h-4 w-4 text-green-600" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <X className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                          <Linkedin className="h-4 w-4 text-blue-600" />
+                        </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => handleApproveLead(lead.lead_id)}
+                            disabled={approveLeadsMutation.isPending || lead.status === 'approved'}
+                            title={lead.status === 'approved' ? 'Already approved' : 'Approve lead'}
+                          >
+                            <Check className={`h-4 w-4 ${lead.status === 'approved' ? 'text-gray-400' : 'text-green-600'}`} />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <X className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                   ))
                 )}
               </TableBody>

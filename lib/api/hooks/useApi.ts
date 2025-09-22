@@ -9,7 +9,8 @@ import {
   CampaignFilters,
   LeadFilters,
   Lead,
-  MailLogFilters
+  MailLogFilters,
+  CampaignDetails
 } from '../types';
 
 /**
@@ -342,4 +343,29 @@ export const useUploadKnowledgeBase = () => {
   });
 };
 
-// Note: SDR hooks are defined above in this file
+/**
+ * Hook for fetching campaign details
+ */
+export const useCampaignDetails = (campaignId: string) => {
+  return useQuery({
+    queryKey: ['campaign-details', campaignId],
+    queryFn: () => sdrService.getCampaignDetails(campaignId),
+    enabled: !!campaignId,
+  });
+};
+
+/**
+ * Hook for approving leads
+ */
+export const useApproveLeads = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (leads: Lead[]) => sdrService.approveLeads(leads),
+    onSuccess: () => {
+      // Invalidate and refetch leads
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+    },
+  });
+};
+

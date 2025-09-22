@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -36,9 +36,9 @@ const SearchInput: React.FC<SearchInputProps> = ({
 }) => {
   const {
     register,
-    handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
-    reset
+    clearErrors
   } = useForm<SearchFormData>({
     resolver: zodResolver(searchSchema),
     defaultValues: {
@@ -46,40 +46,56 @@ const SearchInput: React.FC<SearchInputProps> = ({
     }
   });
 
-  const onSubmit = async (data: SearchFormData) => {
-    try {
-      await onSearch(data.query);
-      // Optionally reset form after search
-      // reset();
-    } catch (error) {
-      console.error('Search error:', error);
-    }
-  };
+  const searchQuery = watch('query');
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleSubmit(onSubmit)();
+  // Debounced search effect
+  useEffect(() => {
+    // Clear existing timeout
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
+
+    // Only search if there's a query and it's not just whitespace
+    if (searchQuery && searchQuery.trim() !== '') {
+      debounceRef.current = setTimeout(() => {
+        onSearch(searchQuery.trim());
+      }, 2000); // 2 seconds delay
+    } else if (searchQuery === '') {
+      // If search is cleared, immediately show all results
+      onSearch('');
+    }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [searchQuery, onSearch]);
+
+  const handleBlur = () => {
+    clearErrors('query');
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={`relative ${className}`}>
+    <div className={`relative ${className}`}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         <Input
           {...register('query')}
           placeholder={placeholder}
           className={`pl-10 ${showButton ? 'pr-20' : 'pr-4'} ${errors.query ? 'border-red-500' : ''}`}
-          onKeyPress={handleKeyPress}
+          onBlur={handleBlur}
           disabled={disabled || isSubmitting}
         />
         {showButton && (
           <Button
-            type="submit"
+            type="button"
             size="sm"
             className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 px-3"
             disabled={disabled || isSubmitting}
+            onClick={() => onSearch(searchQuery || '')}
           >
             {isSubmitting ? '...' : buttonText}
           </Button>
@@ -90,7 +106,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
           {errors.query.message}
         </p>
       )}
-    </form>
+    </div>
   );
 };
 

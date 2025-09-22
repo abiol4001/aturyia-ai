@@ -39,7 +39,7 @@ const Dashboard = () => {
   };
 
   return (
-    <DashboardLayout agentType="sdr">
+    <main className='h-screen bg-gray-50'>
       <div className="p-8">
         <div className="flex items-center justify-between">
           <div>
@@ -219,7 +219,7 @@ const Dashboard = () => {
           }}
         />
       </div>
-    </DashboardLayout>
+    </main>
   );
 };
 
