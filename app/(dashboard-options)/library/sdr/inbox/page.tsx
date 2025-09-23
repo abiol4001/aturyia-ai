@@ -175,7 +175,14 @@ const Inbox = () => {
 
   const handleApproveEmail = async (emailId: string) => {
     try {
-      await approveEmailLeads.mutateAsync([emailId]);
+      // Find the mail log data for the selected email
+      const mailLog = mailLogs.find(log => log.log_id === emailId);
+      if (!mailLog) {
+        console.error('Mail log not found for email ID:', emailId);
+        return;
+      }
+      
+      await approveEmailLeads.mutateAsync([mailLog]);
       console.log('Email approved successfully');
     } catch (error) {
       console.error('Error approving email:', error);
@@ -184,7 +191,14 @@ const Inbox = () => {
 
   const handleRejectEmail = async (emailId: string) => {
     try {
-      await rejectEmailLeads.mutateAsync([emailId]);
+      // Find the mail log data for the selected email
+      const mailLog = mailLogs.find(log => log.log_id === emailId);
+      if (!mailLog) {
+        console.error('Mail log not found for email ID:', emailId);
+        return;
+      }
+      
+      await rejectEmailLeads.mutateAsync([mailLog]);
       console.log('Email rejected successfully');
     } catch (error) {
       console.error('Error rejecting email:', error);

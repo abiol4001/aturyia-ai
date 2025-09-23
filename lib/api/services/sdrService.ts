@@ -495,19 +495,38 @@ export const sdrService = {
    * Approve email leads
    * POST /users/{user_id}/agents/sdr/{agent_id}/email-leads
    */
-  approveEmailLeads: async (emailIds: string[]): Promise<ApiResponse<{ message: string; approved_count: number }>> => {
+  approveEmailLeads: async (mailLogs: MailLog[]): Promise<ApiResponse<{ message: string; approved_count: number }>> => {
     const userId = getUserId();
     const agentId = getSdrAgentId();
     const url = `/users/${userId}/agents/sdr/${agentId}/email-leads`;
 
     try {
-      // Convert email IDs to objects with log_id field
-      const mailLogs = emailIds.map(id => ({ log_id: id }));
+      // Transform mail logs to the required format
+      const transformedMailLogs = mailLogs.map(log => ({
+        log_id: log.log_id,
+        lead_id: log.lead_id,
+        campaign_id: log.campaign_id,
+        campaign_name: log.campaign_name,
+        lead_name: log.lead_name,
+        lead_email: log.lead_email,
+        mail_subject: log.mail_subject,
+        mail_body: log.agent_mail_content || log.lead_mail_content || log.user_mail_content || '',
+        mail_status: log.status,
+        status: log.status,
+        service: log.service,
+        task_id: log.task_id,
+        task_setup: log.task_id, // Using task_id as task_setup since it's not in MailLog interface
+        task_status: log.status // Using status as task_status since it's not in MailLog interface
+      }));
       
-      const response = await api.post<ApiResponse<{ message: string; approved_count: number }>>(url, { 
+      const requestBody = { 
         user_id: userId,
-        mail_logs: mailLogs
-      });
+        mail_logs: transformedMailLogs
+      };
+      
+      console.log('🔍 approveEmailLeads Request Body:', JSON.stringify(requestBody, null, 2));
+      
+      const response = await api.post<ApiResponse<{ message: string; approved_count: number }>>(url, requestBody);
       console.log('🔍 approveEmailLeads API Response:', response);
       return response;
     } catch (error) {
@@ -520,20 +539,39 @@ export const sdrService = {
    * Reject email leads
    * DELETE /users/{user_id}/agents/sdr/{agent_id}/email-leads
    */
-  rejectEmailLeads: async (emailIds: string[]): Promise<ApiResponse<{ message: string; rejected_count: number }>> => {
+  rejectEmailLeads: async (mailLogs: MailLog[]): Promise<ApiResponse<{ message: string; rejected_count: number }>> => {
     const userId = getUserId();
     const agentId = getSdrAgentId();
     const url = `/users/${userId}/agents/sdr/${agentId}/email-leads`;
 
     try {
-      // Convert email IDs to objects with log_id field
-      const mailLogs = emailIds.map(id => ({ log_id: id }));
+      // Transform mail logs to the required format
+      const transformedMailLogs = mailLogs.map(log => ({
+        log_id: log.log_id,
+        lead_id: log.lead_id,
+        campaign_id: log.campaign_id,
+        campaign_name: log.campaign_name,
+        lead_name: log.lead_name,
+        lead_email: log.lead_email,
+        mail_subject: log.mail_subject,
+        mail_body: log.agent_mail_content || log.lead_mail_content || log.user_mail_content || '',
+        mail_status: log.status,
+        status: log.status,
+        service: log.service,
+        task_id: log.task_id,
+        task_setup: log.task_id, // Using task_id as task_setup since it's not in MailLog interface
+        task_status: log.status // Using status as task_status since it's not in MailLog interface
+      }));
+      
+      const requestBody = { 
+        user_id: userId,
+        mail_logs: transformedMailLogs
+      };
+      
+      console.log('🔍 rejectEmailLeads Request Body:', JSON.stringify(requestBody, null, 2));
       
       const response = await api.delete<ApiResponse<{ message: string; rejected_count: number }>>(url, { 
-        data: { 
-          user_id: userId,
-          mail_logs: mailLogs
-        } 
+        data: requestBody
       });
       console.log('🔍 rejectEmailLeads API Response:', response);
       return response;
@@ -541,6 +579,37 @@ export const sdrService = {
       console.error('Error rejecting email leads:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get ICP characteristics based on product info
+   * POST /users/{user_id}/agents/sdr/{agent_id}/icp-characteristics
+   */
+  getICPCharacteristics: async (productInfo: unknown, retries = 2): Promise<ApiResponse<unknown>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/icp-characteristics`;
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await api.post<ApiResponse<unknown>>(url, productInfo, {
+          timeout: 120000 // 2 minutes timeout for AI processing
+        });
+        console.log('🔍 getICPCharacteristics API Response:', response);
+        return response;
+      } catch (error) {
+        console.error(`Error getting ICP characteristics (attempt ${attempt + 1}):`, error);
+        
+        if (attempt === retries) {
+          throw error; // Final attempt failed
+        }
+        
+        // Wait before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+      }
+    }
+    
+    throw new Error('All retry attempts failed');
   },
 
   /**
@@ -553,7 +622,9 @@ export const sdrService = {
     const url = `/users/${userId}/agents/sdr/${agentId}/campaigns/${campaignId}/icp`;
 
     try {
-      const response = await api.post<ApiResponse<{ message: string; icp_id: string }>>(url, icpData);
+      const response = await api.post<ApiResponse<{ message: string; icp_id: string }>>(url, icpData, {
+        timeout: 30000 // 30 seconds timeout for ICP submission
+      });
       console.log('🔍 submitICP API Response:', response);
       return response;
     } catch (error) {

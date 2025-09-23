@@ -58,7 +58,7 @@ export default function Sidebar({ agentType = 'sdr', user }: SidebarProps) {
   const managementItems = filteredNavItems.filter(item => item.section === 'management');
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-[100vh] flex flex-col">
+    <div className="w-60 flexshrink-0 bg-white border-r border-gray-200 h-[100vh] flex flex-col">
       {/* Logo */}
       <div className="p-5 border-b border-gray-200">
         <div className="flex items-center space-x-2">

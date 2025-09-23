@@ -73,12 +73,12 @@ const Pricing = () => {
       return (num / 1000000000).toFixed(1) + 'B';
     }
     if (num >= 1000000) {
-      return '$' + (num / 1000000).toFixed(1) + 'M';
+      return '£' + (num / 1000000).toFixed(1) + 'M';
     }
     if (num >= 1000) {
-      return '$' + (num / 1000).toFixed(0) + 'K';
+      return '£' + (num / 1000).toFixed(0) + 'K';
     }
-    return '$' + num.toLocaleString();
+    return '£' + num.toLocaleString();
   };
 
   return (
@@ -115,7 +115,7 @@ const Pricing = () => {
                 SDR LITE
               </div>
               <div className="text-4xl font-extrabold text-orange-600 mb-3">
-                £---/month
+                £1,000/month
               </div>
               <p className="text-gray-600 text-base">
                 Perfect for growing sales teams
@@ -124,10 +124,10 @@ const Pricing = () => {
 
             <ul className="space-y-3 mb-6 flex-grow relative z-10">
               <li className="text-gray-700 py-1.5 pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-emerald-500 before:font-bold text-sm">
-                Up to 500 leads per month
+                Up to 350 leads per month
               </li>
               <li className="text-gray-700 py-1.5 pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-emerald-500 before:font-bold text-sm">
-                Up to 3000 emails (6 touch cadence)
+                Up to 5000 emails (6-touch cadence)
               </li>
               <li className="text-gray-700 py-1.5 pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-emerald-500 before:font-bold text-sm">
                 1 mailbox, 1 LinkedIn seat
@@ -168,13 +168,14 @@ const Pricing = () => {
 
             <ul className="space-y-3 mb-6 flex-grow relative z-10">
               <li className="text-gray-700 py-1.5 pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-emerald-500 before:font-bold text-sm">
-                Unlimited leads and email sends
+                Up to 2,500 leads per month
               </li>
               <li className="text-gray-700 py-1.5 pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-emerald-500 before:font-bold text-sm">
-                Safety throttle: 200 emails/inbox/day
+                Unlimited email sends
               </li>
+              
               <li className="text-gray-700 py-1.5 pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-emerald-500 before:font-bold text-sm">
-                3 mailboxes, 3 LinkedIn seats
+                5 mailboxes, 3 LinkedIn seats
               </li>
               <li className="text-gray-700 py-1.5 pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-emerald-500 before:font-bold text-sm">
                 Email + Slack support
@@ -183,6 +184,12 @@ const Pricing = () => {
                 Dedicated CSM
               </li>
             </ul>
+
+            <div className="bg-yellow-100/80 border border-yellow-300/50 rounded-lg p-3 mb-6 backdrop-blur-sm relative z-10">
+              <p className="text-yellow-800 text-center font-medium text-sm">
+                12 month contract minimum
+              </p>
+            </div>
 
             <button className="w-full p-3 bg-purple-500/90 border-2 border-purple-400/50 rounded-xl text-white font-semibold text-sm cursor-pointer transition-all duration-300 ease-out hover:bg-purple-600 hover:scale-105 flex items-center justify-center gap-2 mt-auto relative z-10">
               <span>Get Started</span>
@@ -276,8 +283,8 @@ const Pricing = () => {
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                       />
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>$10K</span>
-                        <span>$1M</span>
+                        <span>£10K</span>
+                        <span>£1M</span>
                       </div>
                     </div>
                   </div>

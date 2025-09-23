@@ -1,20 +1,28 @@
-import { Github, Link, Slack } from 'lucide-react'
+import { Github, Linkedin } from 'lucide-react'
 import React from 'react'
+import { 
+  SlackIcon, 
+  HubSpotIcon, 
+  GmailIcon, 
+  NotionIcon, 
+  SalesforceIcon, 
+  OutlookIcon 
+} from './IntegrationIcons'
 
 const IntegrationCards = () => {
 
   const integrationList = [
     {
       name: "Slack",
-      icon: <Slack className="text-white h-4 w-4" />
+      icon: <SlackIcon />
     },
     {
       name: "HubSpot",
-      icon: <Link className="text-white h-4 w-4" />
+      icon: <HubSpotIcon />
     },
     {
       name: "Gmail",
-      icon: <Link className="text-white h-4 w-4" />
+      icon: <GmailIcon />
     },
     {
       name: "GitHub",
@@ -22,19 +30,19 @@ const IntegrationCards = () => {
     },
     {
       name: "Notion",
-      icon: <Link className="text-white h-4 w-4" />
+      icon: <NotionIcon />
     },
     {
       name: "Salesforce",
-      icon: <Link className="text-white h-4 w-4" />
+      icon: <SalesforceIcon />
     },
     {
       name: "LinkedIn",
-      icon: <Link className="text-white h-4 w-4" />
+      icon: <Linkedin className="text-white h-4 w-4" />
     },
     {
       name: "Outlook",
-      icon: <Link className="text-white h-4 w-4" />
+      icon: <OutlookIcon />
     },
   ]
   return (

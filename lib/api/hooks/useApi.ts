@@ -9,8 +9,8 @@ import {
   CampaignFilters,
   LeadFilters,
   Lead,
-  MailLogFilters,
-  CampaignDetails
+  MailLog,
+  MailLogFilters
 } from '../types';
 
 /**
@@ -281,7 +281,7 @@ export const useApproveEmailLeads = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (emailIds: string[]) => sdrService.approveEmailLeads(emailIds),
+    mutationFn: (mailLogs: MailLog[]) => sdrService.approveEmailLeads(mailLogs),
     onSuccess: () => {
       // Invalidate and refetch mail logs
       queryClient.invalidateQueries({ queryKey: ['mail-logs'] });
@@ -296,11 +296,17 @@ export const useRejectEmailLeads = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (emailIds: string[]) => sdrService.rejectEmailLeads(emailIds),
+    mutationFn: (mailLogs: MailLog[]) => sdrService.rejectEmailLeads(mailLogs),
     onSuccess: () => {
       // Invalidate and refetch mail logs
       queryClient.invalidateQueries({ queryKey: ['mail-logs'] });
     },
+  });
+};
+
+export const useGetICPCharacteristics = () => {
+  return useMutation({
+    mutationFn: (productInfo: unknown) => sdrService.getICPCharacteristics(productInfo),
   });
 };
 

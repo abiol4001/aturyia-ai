@@ -6,7 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { useSubmitICP } from '@/lib/api/hooks/useApi';
+import { useSubmitICP, useGetICPCharacteristics } from '@/lib/api/hooks/useApi';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+// Using crypto.randomUUID() for UUID generation
 
 interface FormData {
   // Step 1: Basic Info
@@ -117,7 +120,11 @@ const FIELD_OPTIONS = {
 
 const CreateCampaignForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isGeneratingCharacteristics, setIsGeneratingCharacteristics] = useState(false);
+  const [campaignId, setCampaignId] = useState<string>('');
+  const [aiOptions, setAiOptions] = useState<Record<string, string[]>>({});
   const submitICP = useSubmitICP();
+  const getICPCharacteristics = useGetICPCharacteristics();
   const [formData, setFormData] = useState<FormData>({
     campaignName: '',
     productName: '',
@@ -140,7 +147,8 @@ const CreateCampaignForm: React.FC = () => {
     proofPoints: ['Reduced onboarding time by 40 percent in pilot with beta customers', 'Improved trial to paid conversion by 25 percent in early deployments', 'Delivered automated workflows to replace manual tasks for customer success teams', 'Provided out of the box integrations with major CRMs such as Salesforce and HubSpot', 'Early customers reported measurable reduction in support tickets after deployment']
   });
 
-  // Removed inputValues state as we're now using select dropdowns
+  const router = useRouter();
+
 
   const totalSteps = 4;
   const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
@@ -212,7 +220,115 @@ const CreateCampaignForm: React.FC = () => {
     );
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
+    if (currentStep === 1) {
+      // After Step 1, get AI recommendations
+      setIsGeneratingCharacteristics(true);
+      
+      // Show loading toast
+      toast.loading('Generating AI Recommendations...', {
+        description: 'Please wait while we analyze your product information.',
+        duration: 30000, // Will be dismissed when success/error toast shows
+      });
+      
+      try {
+        // Generate a unique campaign ID using UUID
+        const generatedCampaignId = crypto.randomUUID();
+        setCampaignId(generatedCampaignId); // Store for later use in final submission
+        
+        const productInfo = {
+          user_id: '', // Will be set by the service
+          campaign_id: generatedCampaignId,
+          campaign_name: formData.campaignName,
+          product_chars_basics: {
+            product_name: formData.productName,
+            organization: formData.organization,
+            website: formData.website,
+            overview: formData.overview
+          }
+        };
+        
+        const response = await getICPCharacteristics.mutateAsync(productInfo);
+        console.log('🔍 AI Recommendations:', response);
+        
+        // Show success toast
+        toast.success('AI recommendations generated successfully!', {
+          description: 'Your campaign form has been pre-filled with intelligent suggestions.',
+          duration: 3000,
+        });
+        
+        // Auto-fill Steps 2, 3, 4 with AI recommendations
+        if (response.data) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const aiData = response.data as any;
+          const details = aiData.details;
+          
+          if (details) {
+            // Store AI-generated options for select fields
+            setAiOptions({
+              industries: details.lead_characteristics?.industry || [],
+              departments: details.lead_characteristics?.department || [],
+              headCount: details.lead_characteristics?.head_count || [],
+              locations: details.lead_characteristics?.location?.regions || [],
+              keyDecisionMakers: details.lead_characteristics?.key_decision_makers?.titles || [],
+              responsibilities: details.lead_characteristics?.key_decision_makers?.responsibilities || [],
+              revenue: details.lead_characteristics?.revenue || [],
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              stage: details.lead_characteristics?.stage?.map((s: any) => s.main) || [],
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              substage: details.lead_characteristics?.stage?.flatMap((s: any) => s.substage) || [],
+              goals: details.additional_product_details?.goals || [],
+              painPoints: details.additional_product_details?.pain_points || [],
+              valuePropositions: details.additional_product_details?.value_proposition || [],
+              proofPoints: details.additional_product_details?.proof_points || [],
+            });
+
+            setFormData(prev => ({
+              ...prev,
+              // Step 2: Industry, department, head count, location
+              industries: details.lead_characteristics?.industry || prev.industries,
+              departments: details.lead_characteristics?.department || prev.departments,
+              headCount: details.lead_characteristics?.head_count || prev.headCount,
+              locations: details.lead_characteristics?.location?.regions || prev.locations,
+              locationReason: details.lead_characteristics?.location?.reason || prev.locationReason,
+              
+              // Step 3: Decision makers, revenue, company stage
+              keyDecisionMakers: details.lead_characteristics?.key_decision_makers?.titles || prev.keyDecisionMakers,
+              responsibilities: details.lead_characteristics?.key_decision_makers?.responsibilities || prev.responsibilities,
+              revenue: details.lead_characteristics?.revenue || prev.revenue,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              stage: details.lead_characteristics?.stage?.map((s: any) => s.main) || prev.stage,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              substage: details.lead_characteristics?.stage?.flatMap((s: any) => s.substage) || prev.substage,
+              
+              // Step 4: Goals, pain points, value propositions
+              goals: details.additional_product_details?.goals || prev.goals,
+              painPoints: details.additional_product_details?.pain_points || prev.painPoints,
+              valuePropositions: details.additional_product_details?.value_proposition || prev.valuePropositions,
+              proofPoints: details.additional_product_details?.proof_points || prev.proofPoints,
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error getting AI recommendations:', error);
+        
+        // Show user-friendly error toast
+        if (error instanceof Error && error.message.includes('timeout')) {
+          toast.error('AI Processing Timeout', {
+            description: 'AI processing is taking longer than expected. Please try again or contact support if the issue persists.',
+            duration: 6000,
+          });
+        } else {
+          toast.error('Failed to Generate AI Recommendations', {
+            description: 'Unable to generate AI suggestions. You can continue with manual input or try again.',
+            duration: 5000,
+          });
+        }
+      } finally {
+        setIsGeneratingCharacteristics(false);
+      }
+    }
+    
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
@@ -226,10 +342,21 @@ const CreateCampaignForm: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
+      // Use the campaign ID generated during Step 1
+      if (!campaignId) {
+        console.error('Campaign ID not found. Please complete Step 1 first.');
+        toast.error('Campaign ID Missing', {
+          description: 'Please complete Step 1 first to generate a campaign ID.',
+          duration: 4000,
+        });
+        return;
+      }
+      
+      
       // Format data according to API specification
       const icpData = {
         user_id: '', // Will be set by the service
-        campaign_id: '', // Will be set by the service
+        campaign_id: campaignId, // Generated UUID from Step 1
         campaign_name: formData.campaignName,
         lead_characteristics: {
           industry: formData.industries,
@@ -260,14 +387,25 @@ const CreateCampaignForm: React.FC = () => {
           overview: formData.overview
         }
       };
-
-      // For now, use a placeholder campaign ID - in real app, this would come from URL params or state
-      const campaignId = 'placeholder-campaign-id';
       
       await submitICP.mutateAsync({ campaignId, icpData });
       console.log('ICP submitted successfully');
+      
+      // Show success toast
+      toast.success('Campaign Created Successfully!', {
+        description: `"${formData.campaignName}" has been created and is ready to launch.`,
+        duration: 5000,
+      });
+      toast.dismiss();
+      router.push('/library/sdr/campaigns');
     } catch (error) {
       console.error('Error submitting ICP:', error);
+      
+      // Show error toast
+      toast.error('Failed to Create Campaign', {
+        description: 'There was an error creating your campaign. Please try again or contact support.',
+        duration: 5000,
+      });
     }
   };
 
@@ -377,22 +515,22 @@ const CreateCampaignForm: React.FC = () => {
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Industry</label>
-          {renderSelectField('industries', 'Select industry', FIELD_OPTIONS.industries)}
+          {renderSelectField('industries', 'Select industry', aiOptions.industries.length > 0 ? aiOptions.industries : FIELD_OPTIONS.industries)}
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
-          {renderSelectField('departments', 'Select department', FIELD_OPTIONS.departments)}
+          {renderSelectField('departments', 'Select department', aiOptions.departments.length > 0 ? aiOptions.departments : FIELD_OPTIONS.departments)}
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Head Count</label>
-          {renderSelectField('headCount', 'Select head count', FIELD_OPTIONS.headCount)}
+          {renderSelectField('headCount', 'Select head count', aiOptions.headCount.length > 0 ? aiOptions.headCount : FIELD_OPTIONS.headCount)}
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-          {renderSelectField('locations', 'Select location', FIELD_OPTIONS.locations)}
+          {renderSelectField('locations', 'Select location', aiOptions.locations.length > 0 ? aiOptions.locations : FIELD_OPTIONS.locations)}
         </div>
         
         <div>
@@ -418,27 +556,27 @@ const CreateCampaignForm: React.FC = () => {
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Key Decision Makers</label>
-          {renderSelectField('keyDecisionMakers', 'Select key decision makers', FIELD_OPTIONS.keyDecisionMakers)}
+          {renderSelectField('keyDecisionMakers', 'Select key decision makers', aiOptions.keyDecisionMakers.length > 0 ? aiOptions.keyDecisionMakers : FIELD_OPTIONS.keyDecisionMakers)}
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Key Decision Makers Responsibilities</label>
-          {renderSelectField('responsibilities', 'Select responsibilities', FIELD_OPTIONS.responsibilities)}
+          {renderSelectField('responsibilities', 'Select responsibilities', aiOptions.responsibilities.length > 0 ? aiOptions.responsibilities : FIELD_OPTIONS.responsibilities)}
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Revenue</label>
-          {renderSelectField('revenue', 'Select revenue range', FIELD_OPTIONS.revenue)}
+          {renderSelectField('revenue', 'Select revenue range', aiOptions.revenue.length > 0 ? aiOptions.revenue : FIELD_OPTIONS.revenue)}
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Stage</label>
-          {renderSelectField('stage', 'Select stage', FIELD_OPTIONS.stage)}
+          {renderSelectField('stage', 'Select stage', aiOptions.stage.length > 0 ? aiOptions.stage : FIELD_OPTIONS.stage)}
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Substage</label>
-          {renderSelectField('substage', 'Select substage', FIELD_OPTIONS.substage)}
+          {renderSelectField('substage', 'Select substage', aiOptions.substage.length > 0 ? aiOptions.substage : FIELD_OPTIONS.substage)}
         </div>
       </div>
     </div>
@@ -454,22 +592,22 @@ const CreateCampaignForm: React.FC = () => {
       <div className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Pain Points</label>
-          {renderSelectField('painPoints', 'Type or select pain point and press Enter', FIELD_OPTIONS.painPoints)}
+          {renderSelectField('painPoints', 'Type or select pain point and press Enter', aiOptions.painPoints.length > 0 ? aiOptions.painPoints : FIELD_OPTIONS.painPoints)}
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Goals</label>
-          {renderSelectField('goals', 'Type or select goal and press Enter', FIELD_OPTIONS.goals)}
+          {renderSelectField('goals', 'Type or select goal and press Enter', aiOptions.goals.length > 0 ? aiOptions.goals : FIELD_OPTIONS.goals)}
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Value Propositions</label>
-          {renderSelectField('valuePropositions', 'Type or select value proposition and press Enter', FIELD_OPTIONS.valuePropositions)}
+          {renderSelectField('valuePropositions', 'Type or select value proposition and press Enter', aiOptions.valuePropositions.length > 0 ? aiOptions.valuePropositions : FIELD_OPTIONS.valuePropositions)}
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Proof Points</label>
-          {renderSelectField('proofPoints', 'Type or select proof point and press Enter', FIELD_OPTIONS.proofPoints)}
+          {renderSelectField('proofPoints', 'Type or select proof point and press Enter', aiOptions.proofPoints.length > 0 ? aiOptions.proofPoints : FIELD_OPTIONS.proofPoints)}
         </div>
       </div>
     </div>
@@ -520,10 +658,20 @@ const CreateCampaignForm: React.FC = () => {
             {currentStep < totalSteps ? (
               <Button
                 onClick={nextStep}
-                className="bg-orange-500 hover:bg-orange-600 text-white flex items-center space-x-2"
+                disabled={isGeneratingCharacteristics}
+                className="bg-orange-500 hover:bg-orange-600 text-white flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>Next</span>
-                <ChevronRight className="w-4 h-4" />
+                {isGeneratingCharacteristics ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Generating AI Recommendations...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Next</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </>
+                )}
               </Button>
             ) : (
               <Button
