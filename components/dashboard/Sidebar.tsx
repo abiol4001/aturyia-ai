@@ -41,7 +41,7 @@ const navItems: NavItem[] = [
   { name: 'Integrations', href: '/library/sdr/integrations', icon: LinkIcon, section: 'management' },
   { name: 'Knowledge Base', href: '/library/sdr/knowledge', icon: BookOpen, section: 'management' },
   { name: 'Notifications', href: '/library/sdr/notifications', icon: Bell, section: 'management' },
-  { name: 'Settings', href: '/library/sdr/settings', icon: Settings, section: 'management' },
+  // { name: 'Settings', href: '/library/sdr/settings', icon: Settings, section: 'management' },
 ];
 
 export default function Sidebar({ agentType = 'sdr', user }: SidebarProps) {

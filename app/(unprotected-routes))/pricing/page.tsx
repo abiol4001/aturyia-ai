@@ -159,7 +159,7 @@ const Pricing = () => {
                 SDR UNLIMITED
               </div>
               <div className="text-4xl font-extrabold text-purple-600 mb-3">
-                £---/month
+                £2,500/month
               </div>
               <p className="text-gray-600 text-base">
                 For high-volume sales operations

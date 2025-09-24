@@ -13,7 +13,9 @@ import SearchInput from '@/components/ui/search-input';
 const Leads = () => {
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
-  const [filters] = useState<LeadFilters>({});
+  const [filters] = useState<LeadFilters>({
+    status: 'pending' // Only show pending leads
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch leads and stats from API
@@ -82,8 +84,8 @@ const Leads = () => {
   };
 
   // Debug logging
-  console.log('🔍 Leads API Response:', leadsResponse);
-  console.log('📊 Leads Data:', leads);
+  // console.log('🔍 Leads API Response:', leadsResponse);
+  // console.log('📊 Leads Data:', leads);
 
   const handleSelectAll = (checked: boolean) => {
     setSelectAll(checked);
@@ -131,19 +133,19 @@ const Leads = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Leads ({leadsLoading ? '...' : leads.length})
+              Pending Leads ({leadsLoading ? '...' : leads.length})
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              {leadsLoading ? 'Loading leads...' : 
+              {leadsLoading ? 'Loading pending leads...' : 
                 searchQuery ? 
-                  `Showing ${leads.length} of ${allLeads.length} leads` : 
-                  'All leads found by your SDR agent and uploaded by you.'
+                  `Showing ${leads.length} of ${allLeads.length} pending leads` : 
+                  'Pending leads awaiting your approval.'
               }
             </p>
           </div>
           <div className="flex items-center space-x-3">
             <SearchInput
-                placeholder="Search by name or email..." 
+                placeholder="Search pending leads..." 
               onSearch={handleSearch}
               className="w-64"
               defaultValue={searchQuery}
@@ -236,7 +238,7 @@ const Leads = () => {
                 ) : isEmpty ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                      No leads found. Start by creating your first campaign!
+                      No pending leads found. All leads have been processed!
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -316,10 +318,10 @@ const Leads = () => {
                             size="icon" 
                             className="h-8 w-8"
                             onClick={() => handleApproveLead(lead.lead_id)}
-                            disabled={approveLeadsMutation.isPending || lead.status === 'approved'}
-                            title={lead.status === 'approved' ? 'Already approved' : 'Approve lead'}
+                            disabled={approveLeadsMutation.isPending}
+                            title="Approve lead"
                           >
-                            <Check className={`h-4 w-4 ${lead.status === 'approved' ? 'text-gray-400' : 'text-green-600'}`} />
+                            <Check className="h-4 w-4 text-green-600" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <X className="h-4 w-4 text-red-600" />

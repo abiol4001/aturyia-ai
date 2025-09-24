@@ -22,9 +22,20 @@ interface Email {
   avatar: string;
 }
 
+interface ApprovalGroup {
+  leadEmail: string;
+  leadName: string;
+  campaignName: string;
+  avatar: string;
+  emails: MailLog[];
+  lastMessage: string;
+  unreadCount: number;
+}
+
 
 const Inbox = () => {
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+  const [selectedApprovalGroup, setSelectedApprovalGroup] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('inbox');
   const [filters] = useState<MailLogFilters>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -156,9 +167,6 @@ const Inbox = () => {
   };
 
   const inboxEmails = getFilteredEmails();
-  const approvalEmails = mailLogs
-    .filter(log => log.direction === 'outgoing' && log.status === 'pending')
-    .map(transformMailLogToEmail);
   const sentEmails = mailLogs
     .filter(log => log.direction === 'outgoing' && log.status !== 'pending')
     .map(transformMailLogToEmail);
@@ -168,9 +176,58 @@ const Inbox = () => {
     // Client-side filtering, no need to update API filters
   }, []);
 
+  // Group approval emails by lead_email
+  const getApprovalGroups = () => {
+    const approvalEmails = mailLogs.filter(log => 
+      log.direction === 'outgoing' && log.status === 'pending'
+    );
+    
+    const groupMap = new Map();
+    
+    approvalEmails.forEach(log => {
+      const leadEmail = log.lead_email || 'unknown';
+      if (!groupMap.has(leadEmail)) {
+        groupMap.set(leadEmail, {
+          leadEmail,
+          leadName: log.lead_name || 'Unknown Lead',
+          campaignName: log.campaign_name || 'Unknown Campaign',
+          avatar: log.lead_name ? log.lead_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U',
+          emails: [],
+          lastMessage: log.created_at,
+          unreadCount: 0
+        });
+      }
+      
+      const group = groupMap.get(leadEmail);
+      group.emails.push(log);
+      
+      if (new Date(log.created_at) > new Date(group.lastMessage)) {
+        group.lastMessage = log.created_at;
+      }
+      
+      group.unreadCount++;
+    });
+    
+    return Array.from(groupMap.values()).sort((a, b) => 
+      new Date(b.lastMessage).getTime() - new Date(a.lastMessage).getTime()
+    );
+  };
+
+  const approvalGroups = getApprovalGroups();
+
+  // Get emails for selected approval group
+  const getSelectedGroupEmails = () => {
+    if (!selectedApprovalGroup) return [];
+    const group = approvalGroups.find(g => g.leadEmail === selectedApprovalGroup);
+    return group ? group.emails : [];
+  };
+
+  const selectedGroupEmails = getSelectedGroupEmails();
+
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setSelectedEmail(null);
+    setSelectedApprovalGroup(null);
   };
 
   const handleApproveEmail = async (emailId: string) => {
@@ -202,6 +259,32 @@ const Inbox = () => {
       console.log('Email rejected successfully');
     } catch (error) {
       console.error('Error rejecting email:', error);
+    }
+  };
+
+  // Handle bulk approval for a lead's emails
+  const handleBulkApproveLead = async (leadEmail: string) => {
+    try {
+      const group = approvalGroups.find(g => g.leadEmail === leadEmail);
+      if (!group) return;
+      
+      await approveEmailLeads.mutateAsync(group.emails);
+      console.log(`Approved ${group.emails.length} emails for ${group.leadName}`);
+    } catch (error) {
+      console.error('Error bulk approving emails:', error);
+    }
+  };
+
+  // Handle bulk rejection for a lead's emails
+  const handleBulkRejectLead = async (leadEmail: string) => {
+    try {
+      const group = approvalGroups.find(g => g.leadEmail === leadEmail);
+      if (!group) return;
+      
+      await rejectEmailLeads.mutateAsync(group.emails);
+      console.log(`Rejected ${group.emails.length} emails for ${group.leadName}`);
+    } catch (error) {
+      console.error('Error bulk rejecting emails:', error);
     }
   };
 
@@ -356,6 +439,77 @@ const Inbox = () => {
     </div>
   );
 
+  // Render approval groups (grouped by lead_email)
+  const renderApprovalGroups = () => (
+    <div className="flex-1 overflow-y-auto max-h-[calc(100vh-200px)]">
+      {mailLogsLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <RefreshCcw className="w-6 h-6 animate-spin mx-auto mb-2 text-orange-500" />
+            <p className="text-sm text-gray-600">Loading approvals...</p>
+          </div>
+        </div>
+      ) : approvalGroups.length === 0 ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <MailCheck className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">No emails pending approval</p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-0">
+          {approvalGroups.map((group) => (
+            <div key={group.leadEmail} className="border-b border-gray-100">
+              {/* Group Header */}
+              <div 
+                className={`p-4 cursor-pointer hover:bg-amber-50 ${
+                  selectedApprovalGroup === group.leadEmail ? 'bg-gray-100' : ''
+                }`}
+                onClick={() => {
+                  if (selectedApprovalGroup === group.leadEmail) {
+                    setSelectedApprovalGroup(null);
+                    setSelectedEmail(null);
+                  } else {
+                    setSelectedApprovalGroup(group.leadEmail);
+                    // Auto-select the first email in the group
+                    if (group.emails.length > 0) {
+                      setSelectedEmail(group.emails[0].log_id);
+                    }
+                  }
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-semibold text-sm">
+                          {group.avatar}
+                        </span>
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">{group.unreadCount}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">{group.leadName}</h3>
+                      <p className="text-sm text-gray-600">{group.leadEmail}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-400">
+                      {new Date(group.lastMessage).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <DashboardLayout agentType="sdr">
       <Tabs defaultValue="inbox" value={activeTab} onValueChange={handleTabChange} className="h-screen flex flex-col bg-gray-50">
@@ -421,7 +575,7 @@ const Inbox = () => {
                 {renderEmailList(inboxEmails)}
               </TabsContent>
               <TabsContent value="approvals" className="h-full m-0">
-                {renderEmailList(approvalEmails)}
+                {renderApprovalGroups()}
               </TabsContent>
               <TabsContent value="sent" className="h-full m-0">
                 {renderEmailList(sentEmails)}
@@ -444,6 +598,17 @@ const Inbox = () => {
             onReject={() => selectedEmail && handleRejectEmail(selectedEmail)}
             onEdit={() => console.log('Edit clicked')}
             onMail={() => console.log('Mail clicked')}
+            // Pass approval group data when in approvals tab
+            approvalGroup={activeTab === 'approvals' && selectedApprovalGroup ? {
+              leadEmail: selectedApprovalGroup,
+              leadName: approvalGroups.find(g => g.leadEmail === selectedApprovalGroup)?.leadName || 'Unknown Lead',
+              campaignName: approvalGroups.find(g => g.leadEmail === selectedApprovalGroup)?.campaignName || 'Unknown Campaign',
+              emails: selectedGroupEmails,
+              onBulkApprove: () => handleBulkApproveLead(selectedApprovalGroup),
+              onBulkReject: () => handleBulkRejectLead(selectedApprovalGroup),
+              onEmailSelect: (emailId: string) => setSelectedEmail(emailId),
+              isPending: approveEmailLeads.isPending || rejectEmailLeads.isPending
+            } : undefined}
           />
         </div>
       </Tabs>

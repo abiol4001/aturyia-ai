@@ -511,12 +511,13 @@ export const sdrService = {
         lead_email: log.lead_email,
         mail_subject: log.mail_subject,
         mail_body: log.agent_mail_content || log.lead_mail_content || log.user_mail_content || '',
-        mail_status: log.status,
-        status: log.status,
+        mail_status: "approved",
+        status: "approved",
+        direction: log.direction,
         service: log.service,
         task_id: log.task_id,
-        task_setup: log.task_id, // Using task_id as task_setup since it's not in MailLog interface
-        task_status: log.status // Using status as task_status since it's not in MailLog interface
+        task_setup: log.task_id, 
+        task_status: "done"
       }));
       
       const requestBody = { 
@@ -526,11 +527,19 @@ export const sdrService = {
       
       console.log('🔍 approveEmailLeads Request Body:', JSON.stringify(requestBody, null, 2));
       
-      const response = await api.post<ApiResponse<{ message: string; approved_count: number }>>(url, requestBody);
+      const response = await api.post<ApiResponse<{ message: string; approved_count: number }>>(url, requestBody, {
+        timeout: 30000 // 30 seconds timeout for email approval
+      });
       console.log('🔍 approveEmailLeads API Response:', response);
       return response;
     } catch (error) {
       console.error('Error approving email leads:', error);
+      
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.message.includes('timeout')) {
+        throw new Error('Email approval request timed out. Please try again or contact support if the issue persists.');
+      }
+      
       throw error;
     }
   },
@@ -555,12 +564,13 @@ export const sdrService = {
         lead_email: log.lead_email,
         mail_subject: log.mail_subject,
         mail_body: log.agent_mail_content || log.lead_mail_content || log.user_mail_content || '',
-        mail_status: log.status,
-        status: log.status,
+        mail_status: "rejected",
+        status: "rejected",
+        direction: log.direction,
         service: log.service,
         task_id: log.task_id,
-        task_setup: log.task_id, // Using task_id as task_setup since it's not in MailLog interface
-        task_status: log.status // Using status as task_status since it's not in MailLog interface
+        task_setup: log.task_id,
+        task_status: "done"
       }));
       
       const requestBody = { 
@@ -570,13 +580,19 @@ export const sdrService = {
       
       console.log('🔍 rejectEmailLeads Request Body:', JSON.stringify(requestBody, null, 2));
       
-      const response = await api.delete<ApiResponse<{ message: string; rejected_count: number }>>(url, { 
-        data: requestBody
+      const response = await api.post<ApiResponse<{ message: string; rejected_count: number }>>(url, requestBody, {
+        timeout: 30000 // 30 seconds timeout for email rejection
       });
       console.log('🔍 rejectEmailLeads API Response:', response);
       return response;
     } catch (error) {
       console.error('Error rejecting email leads:', error);
+      
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.message.includes('timeout')) {
+        throw new Error('Email rejection request timed out. Please try again or contact support if the issue persists.');
+      }
+      
       throw error;
     }
   },
@@ -694,7 +710,7 @@ export const sdrService = {
       linkedin_url: lead.linkedin_url || '',
       website: lead.website || '',
       contact_method: ['email'], // Default contact method
-      status: lead.status,
+      status: 'approved', 
       task_id: lead.task_id,
       task_status: lead.task_status
     }));
@@ -705,11 +721,19 @@ export const sdrService = {
     };
 
     try {
-      const response = await api.post<ApiResponse<unknown>>(url, requestBody);
+      const response = await api.post<ApiResponse<unknown>>(url, requestBody, {
+        timeout: 60000 // 60 seconds timeout for lead approval
+      });
       console.log('🔍 approveLeads API Response:', response);
       return response;
     } catch (error) {
       console.error('Error approving leads:', error);
+      
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.message.includes('timeout')) {
+        throw new Error('Lead approval request timed out. Please try again or contact support if the issue persists.');
+      }
+      
       throw error;
     }
   }

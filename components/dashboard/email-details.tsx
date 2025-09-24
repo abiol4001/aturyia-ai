@@ -22,6 +22,25 @@ interface EmailThread {
 
 type EmailVariant = 'inbox' | 'approvals' | 'sent';
 
+interface ApprovalGroupEmail {
+  log_id: string;
+  mail_subject: string;
+  mail_body: string;
+  created_at: string;
+  service?: string;
+}
+
+interface ApprovalGroup {
+  leadEmail: string;
+  leadName: string;
+  campaignName: string;
+  emails: ApprovalGroupEmail[];
+  onBulkApprove: () => void;
+  onBulkReject: () => void;
+  isPending: boolean;
+  onEmailSelect: (emailId: string) => void;
+}
+
 interface EmailDetailsProps {
   selectedEmail: string | null;
   emailThread: Record<string, EmailThread>;
@@ -44,6 +63,8 @@ interface EmailDetailsProps {
   // Custom styling
   headerActions?: React.ReactNode;
   footerActions?: React.ReactNode;
+  // Approval group data
+  approvalGroup?: ApprovalGroup;
 }
 
 export default function EmailDetails({
@@ -63,7 +84,8 @@ export default function EmailDetails({
   // onResend,
   // onSchedule,
   headerActions,
-  footerActions
+  footerActions,
+  approvalGroup
 }: EmailDetailsProps) {
   // Extract initials from name
   const getInitials = (name: string) => {
@@ -160,6 +182,141 @@ export default function EmailDetails({
         );
     }
   };
+
+  // If we have an approval group, show the group emails instead of individual email
+  if (approvalGroup) {
+    return (
+      <div className="flex-1 bg-white relative" style={{ maxHeight: 'calc(100vh - 80px)' }}>
+        {/* Approval Group Header */}
+        <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row md:justify-between">
+          <div>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold text-sm">
+                  {getInitials(approvalGroup.leadName)}
+                </span>
+              </div>
+              <div>
+                <h2 className="font-medium text-gray-900">{approvalGroup.leadName}</h2>
+                <p className="text-sm text-gray-600">{approvalGroup.leadEmail}</p>
+                <p className="text-sm text-gray-600 font-semibold">{approvalGroup.campaignName}</p>
+              </div>
+            </div>
+            {/* <h1 className="text-lg font-semibold text-gray-900 mt-4">
+              {approvalGroup.emails.length} Email{approvalGroup.emails.length > 1 ? 's' : ''} Pending Approval
+            </h1> */}
+          </div>
+          
+        </div>
+
+        {/* Approval Group Email List */}
+        <div className="flex-1 overflow-y-auto p-6" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+          <div className="space-y-4">
+            {approvalGroup.emails.map((email) => (
+              <div
+                key={email.log_id}
+                className={`border rounded-lg p-4 ${
+                  selectedEmail === email.log_id 
+                    ? 'border-orange-300 bg-orange-50' 
+                    : 'border-gray-200 bg-white'
+                }`}
+                onClick={() => approvalGroup.onEmailSelect(email.log_id)}
+              >
+                {/* Email Header */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-semibold text-xs">
+                        {approvalGroup.leadName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900 text-sm">{approvalGroup.leadName}</h3>
+                      <p className="text-xs text-gray-600">{approvalGroup.leadEmail}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-500">
+                      {new Date(email.created_at).toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: true 
+                      })}
+                    </span>
+                    <button className="text-gray-400 hover:text-gray-600">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Email Subject */}
+                <h4 className="font-semibold text-gray-900 mb-3">
+                  {email.mail_subject || 'No Subject'}
+                </h4>
+
+                {/* Email Content Preview */}
+                <div className="text-sm text-gray-700 mb-4">
+                  <div 
+                    dangerouslySetInnerHTML={{ 
+                      __html: email.mail_body || 'No email content available' 
+                    }}
+                    className="prose prose-sm max-w-none"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onReject) onReject();
+                    }}
+                    disabled={approvalGroup.isPending}
+                    className="text-red-600 border-red-200 hover:bg-red-50 flex items-center space-x-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>Reject</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onApprove) onApprove();
+                    }}
+                    disabled={approvalGroup.isPending}
+                    className="bg-orange-500 hover:bg-orange-600 text-white flex items-center space-x-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Approve</span>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Summary Footer */}
+        <div className="p-4 bg-gray-50 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">
+              {approvalGroup.emails.length} email{approvalGroup.emails.length > 1 ? 's' : ''} pending approval
+            </span>
+            <span className="text-xs text-gray-500">
+              Click on an email to view details
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-white relative" style={{ maxHeight: 'calc(100vh - 80px)' }}>
