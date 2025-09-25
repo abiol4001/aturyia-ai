@@ -16,7 +16,8 @@ import {
   MailLogStats,
   KnowledgeBaseFile,
   CampaignDetails,
-  LeadApprovalRequest
+  LeadApprovalRequest,
+  AnalyticsData
 } from '../types';
 import {
   getUserId,
@@ -545,6 +546,96 @@ export const sdrService = {
   },
 
   /**
+   * Get notifications for the SDR agent
+   * GET /users/{user_id}/agents/sdr/{agent_id}/notifications
+   */
+  getNotifications: async (filters?: {
+    notification_type?: string;
+    priority?: string;
+    is_read?: boolean;
+    records?: number;
+  }): Promise<ApiResponse<Notification[]>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/notifications`;
+
+    try {
+      const params = new URLSearchParams();
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            params.append(key, value.toString());
+          }
+        });
+      }
+
+      const response = await api.get<ApiResponse<Notification[]>>(`${url}?${params.toString()}`);
+      console.log('🔍 getNotifications API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get unread notifications count
+   * GET /users/{user_id}/agents/sdr/{agent_id}/notifications/unread-count
+   */
+  getUnreadNotificationsCount: async (): Promise<ApiResponse<{ unread_count: number }>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/notifications/unread-count`;
+
+    try {
+      const response = await api.get<ApiResponse<{ unread_count: number }>>(url);
+      console.log('🔍 getUnreadNotificationsCount API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching unread notifications count:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mark single notification as read
+   * GET /users/{user_id}/agents/sdr/{agent_id}/notifications/{notification_id}/mark-read
+   */
+  markNotificationAsRead: async (notificationId: string): Promise<ApiResponse<{ message: string }>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/notifications/${notificationId}/mark-read`;
+
+    try {
+      const response = await api.get<ApiResponse<{ message: string }>>(url);
+      console.log('🔍 markNotificationAsRead API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mark all notifications as read
+   * GET /users/{user_id}/agents/sdr/{agent_id}/notifications/mark-all-read
+   */
+  markAllNotificationsAsRead: async (): Promise<ApiResponse<{ message: string; updated_count: number }>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/notifications/mark-all-read`;
+
+    try {
+      const response = await api.get<ApiResponse<{ message: string; updated_count: number }>>(url);
+      console.log('🔍 markAllNotificationsAsRead API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Reject email leads
    * DELETE /users/{user_id}/agents/sdr/{agent_id}/email-leads
    */
@@ -734,6 +825,76 @@ export const sdrService = {
         throw new Error('Lead approval request timed out. Please try again or contact support if the issue persists.');
       }
       
+      throw error;
+    }
+  },
+
+  /**
+   * Reject leads
+   * POST /users/{user_id}/agents/sdr/{agent_id}/approve-leads
+   */
+  rejectLeads: async (leads: Lead[]): Promise<ApiResponse<unknown>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/approve-leads`;
+
+    // Transform leads to the required format for rejection
+    const leadsData = leads.map(lead => ({
+      lead_id: lead.lead_id,
+      agent_id: lead.agent_id,
+      campaign_id: lead.campaign_id,
+      campaign_name: lead.campaign_name,
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone || '',
+      organization: lead.organization,
+      designation: lead.designation,
+      linkedin_url: lead.linkedin_url || '',
+      website: lead.website || '',
+      contact_method: [], // Empty array for rejected leads
+      status: 'rejected', // Key difference: rejected status
+      task_id: lead.task_id,
+      task_status: lead.task_status
+    }));
+
+    const requestBody: LeadApprovalRequest = {
+      user_id: userId,
+      leads: leadsData
+    };
+
+    try {
+      const response = await api.post<ApiResponse<unknown>>(url, requestBody, {
+        timeout: 60000 // 60 seconds timeout for lead rejection
+      });
+      console.log('🔍 rejectLeads API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error rejecting leads:', error);
+      
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.message.includes('timeout')) {
+        throw new Error('Lead rejection request timed out. Please try again or contact support if the issue persists.');
+      }
+      
+      throw error;
+    }
+  },
+
+  /**
+   * Get analytics data
+   * GET /users/{user_id}/agents/sdr/{agent_id}/analytics
+   */
+  getAnalytics: async (): Promise<ApiResponse<AnalyticsData>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/analytics`;
+
+    try {
+      const response = await api.get<ApiResponse<AnalyticsData>>(url);
+      console.log('🔍 getAnalytics API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
       throw error;
     }
   }

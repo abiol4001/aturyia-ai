@@ -10,7 +10,8 @@ import {
   LeadFilters,
   Lead,
   MailLog,
-  MailLogFilters
+  MailLogFilters,
+  AnalyticsData
 } from '../types';
 
 /**
@@ -372,6 +373,95 @@ export const useApproveLeads = () => {
       // Invalidate and refetch leads
       queryClient.invalidateQueries({ queryKey: ['leads'] });
     },
+  });
+};
+
+/**
+ * Hook for rejecting leads
+ */
+export const useRejectLeads = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (leads: Lead[]) => sdrService.rejectLeads(leads),
+    onSuccess: () => {
+      // Invalidate and refetch leads
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+    },
+  });
+};
+
+// Notification Hooks
+
+/**
+ * Hook for fetching notifications
+ */
+export const useNotifications = (filters?: {
+  notification_type?: string;
+  priority?: string;
+  is_read?: boolean;
+  records?: number;
+}) => {
+  return useQuery({
+    queryKey: ['notifications', filters],
+    queryFn: () => sdrService.getNotifications(filters),
+    staleTime: 30000, // 30 seconds
+  });
+};
+
+/**
+ * Hook for fetching unread notifications count
+ */
+export const useUnreadNotificationsCount = () => {
+  return useQuery({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: () => sdrService.getUnreadNotificationsCount(),
+    staleTime: 10000, // 10 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+};
+
+/**
+ * Hook for marking a single notification as read
+ */
+export const useMarkNotificationAsRead = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (notificationId: string) => sdrService.markNotificationAsRead(notificationId),
+    onSuccess: () => {
+      // Invalidate and refetch notifications and unread count
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+    },
+  });
+};
+
+/**
+ * Hook for marking all notifications as read
+ */
+export const useMarkAllNotificationsAsRead = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: () => sdrService.markAllNotificationsAsRead(),
+    onSuccess: () => {
+      // Invalidate and refetch notifications and unread count
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+    },
+  });
+};
+
+/**
+ * Hook for fetching analytics data
+ */
+export const useAnalytics = () => {
+  return useQuery({
+    queryKey: ['analytics'],
+    queryFn: () => sdrService.getAnalytics(),
+    staleTime: 30000, // 30 seconds
+    refetchInterval: 60000, // Refetch every minute
   });
 };
 

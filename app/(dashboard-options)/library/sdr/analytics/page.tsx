@@ -1,10 +1,28 @@
+"use client"
+
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import React from 'react'
-import { RefreshCcw, Target, Users, Mail, Calendar, TrendingUp, ArrowUpRight, Clock, BarChart3, LineChart, List, Building2 } from 'lucide-react'
+import { RefreshCcw, Target, Users, Mail, Calendar, TrendingUp, ArrowUpRight, Clock, BarChart3, LineChart, List, Building2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAnalytics } from '@/lib/api/hooks/useApi'
 
 const AnalyticsPage = () => {
+  // Fetch analytics data from API
+  const { 
+    data: analyticsResponse, 
+    isLoading: analyticsLoading, 
+    error: analyticsError,
+    refetch: refetchAnalytics 
+  } = useAnalytics();
+
+  const analytics = analyticsResponse?.data;
+
+  // Handle refresh
+  const handleRefresh = () => {
+    refetchAnalytics();
+  };
+
   return (
     <DashboardLayout agentType="sdr">
       <div className="space-y-6 bg-gray-50 h-full overflow-y-auto">
@@ -14,13 +32,38 @@ const AnalyticsPage = () => {
             <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
             <p className="text-gray-600 mt-1">Track your campaign performance and engagement metrics</p>
           </div>
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white">
-            <RefreshCcw className="w-4 h-4 mr-2" />
-            Refresh
+          <Button 
+            onClick={handleRefresh}
+            disabled={analyticsLoading}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
+            <RefreshCcw className={`w-4 h-4 mr-2 ${analyticsLoading ? 'animate-spin' : ''}`} />
+            {analyticsLoading ? 'Refreshing...' : 'Refresh'}
           </Button>
         </div>
 
-        {/* Top Metrics Cards */}
+        {/* Loading State */}
+        {analyticsLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+            <span className="ml-2 text-gray-600">Loading analytics data...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {analyticsError && (
+          <div className="text-center py-12">
+            <div className="text-red-500 mb-2">Failed to load analytics data</div>
+            <Button onClick={handleRefresh} variant="outline" size="sm">
+              Try Again
+            </Button>
+          </div>
+        )}
+
+        {/* Analytics Content */}
+        {!analyticsLoading && !analyticsError && (
+          <>
+            {/* Top Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Total Campaigns */}
           <Card className="bg-white border border-gray-200">
@@ -33,8 +76,16 @@ const AnalyticsPage = () => {
                   <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Campaigns</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">0</p>
-                  <p className="text-sm text-orange-600 mt-1">0 active</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">
+                    {analyticsLoading ? (
+                      <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                    ) : (
+                      analytics?.performance_metrics?.total_campaigns || 0
+                    )}
+                  </p>
+                  <p className="text-sm text-orange-600 mt-1">
+                    {analytics?.performance_metrics?.active_campaigns || 0} active
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -52,8 +103,16 @@ const AnalyticsPage = () => {
                   
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">0</p>
-                  <p className="text-sm text-orange-600 mt-1">0.0% conversion</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">
+                    {analyticsLoading ? (
+                      <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                    ) : (
+                      analytics?.lead_analytics?.total_leads || 0
+                    )}
+                  </p>
+                  <p className="text-sm text-orange-600 mt-1">
+                    {(analytics?.lead_analytics?.conversion_rate || 0).toFixed(1)}% conversion
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -70,8 +129,16 @@ const AnalyticsPage = () => {
                     <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Emails Sent</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">0</p>
-                  <p className="text-sm text-orange-600 mt-1">0.0% response rate</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">
+                    {analyticsLoading ? (
+                      <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                    ) : (
+                      analytics?.email_analytics?.total_emails_sent || 0
+                    )}
+                  </p>
+                  <p className="text-sm text-orange-600 mt-1">
+                    {(analytics?.email_analytics?.overall_response_rate || 0).toFixed(1)}% response rate
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -88,8 +155,16 @@ const AnalyticsPage = () => {
                     <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Meetings</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">0</p>
-                  <p className="text-sm text-orange-600 mt-1">0.0% accepted</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">
+                    {analyticsLoading ? (
+                      <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                    ) : (
+                      analytics?.meeting_analytics?.total_meetings_scheduled || 0
+                    )}
+                  </p>
+                  <p className="text-sm text-orange-600 mt-1">
+                    {(analytics?.meeting_analytics?.meeting_acceptance_rate || 0).toFixed(1)}% accepted
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -134,7 +209,13 @@ const AnalyticsPage = () => {
                     </div>
                     <span className="text-gray-900 font-medium">Emails Sent</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">0</span>
+                  <span className="text-lg font-semibold text-gray-900">
+                    {analyticsLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                    ) : (
+                      analytics?.performance_metrics?.recent_activity?.find(activity => activity.type === 'emails_sent')?.count || 0
+                    )}
+                  </span>
                 </div>
 
                 {/* Meetings Scheduled */}
@@ -145,7 +226,13 @@ const AnalyticsPage = () => {
                     </div>
                     <span className="text-gray-900 font-medium">Meetings Scheduled</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">0</span>
+                  <span className="text-lg font-semibold text-gray-900">
+                    {analyticsLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                    ) : (
+                      analytics?.performance_metrics?.recent_activity?.find(activity => activity.type === 'meetings_scheduled')?.count || 0
+                    )}
+                  </span>
                 </div>
 
                 {/* Leads Generated */}
@@ -156,7 +243,13 @@ const AnalyticsPage = () => {
                     </div>
                     <span className="text-gray-900 font-medium">Leads Generated</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">0</span>
+                  <span className="text-lg font-semibold text-gray-900">
+                    {analyticsLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                    ) : (
+                      analytics?.performance_metrics?.recent_activity?.find(activity => activity.type === 'leads_generated')?.count || 0
+                    )}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -307,69 +400,127 @@ const AnalyticsPage = () => {
           </Card>
         </div>
 
-        {/* Empty State Section */}
-        <div className="space-y-6">
-          {/* Top Two Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Campaign Details */}
-            <Card className="bg-white border border-gray-200">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg font-semibold text-gray-900">Campaign Details</CardTitle>
-                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <List className="w-4 h-4 text-orange-600" />
-                </div>
-              </CardHeader>
-              <CardContent className="p-6 border-t">
-                <div className="flex items-center justify-center h-48">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <BarChart3 className="w-8 h-8 text-gray-400" />
+        {/* Campaign Performance Section */}
+        {analytics && analytics.campaign_analytics && analytics.campaign_analytics.length > 0 && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Campaign Performance</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {analytics.campaign_analytics.map((campaign) => (
+                <Card key={campaign.campaign_id} className="bg-white border border-gray-200">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold text-gray-900">{campaign.campaign_name}</CardTitle>
+                    <p className="text-sm text-gray-500">
+                      Created: {new Date(campaign.created_at).toLocaleDateString()}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-gray-900">{campaign.total_leads}</p>
+                        <p className="text-sm text-gray-500">Leads</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-gray-900">{campaign.total_emails_sent}</p>
+                        <p className="text-sm text-gray-500">Emails</p>
+                      </div>
                     </div>
-                    <p className="text-gray-500">No campaign data available</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Top Organizations */}
-            <Card className="bg-white border border-gray-200">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg font-semibold text-gray-900">Top Organizations</CardTitle>
-                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-4 h-4 text-orange-600" />
-                </div>
-              </CardHeader>
-              <CardContent className="p-6 border-t">
-                <div className="flex items-center justify-center h-48">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Building2 className="w-8 h-8 text-gray-400" />
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Response Rate</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {campaign.response_rate.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Meetings</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {campaign.total_meetings_scheduled}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Acceptance Rate</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          {campaign.meeting_acceptance_rate.toFixed(1)}%
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-gray-500">No organization data available</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Main Empty State */}
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-              <BarChart3 className="w-10 h-10 text-gray-400" />
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-            
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">No Analytics Data Available</h2>
-            
-            <p className="text-gray-600 text-center max-w-md mb-8 leading-relaxed">
-              Start creating campaigns and generating leads to see your analytics dashboard populate with insights.
-            </p>
-            
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg">
-              <RefreshCcw className="w-4 h-4 mr-2" />
-              Refresh Data
-            </Button>
           </div>
-        </div>
+        )}
+
+            {/* Empty State Section - Only show if no data */}
+            {(!analytics || analytics.performance_metrics?.total_campaigns === 0) && (
+              <div className="space-y-6">
+                {/* Top Two Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Campaign Details */}
+                  <Card className="bg-white border border-gray-200">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-lg font-semibold text-gray-900">Campaign Details</CardTitle>
+                      <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <List className="w-4 h-4 text-orange-600" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6 border-t">
+                      <div className="flex items-center justify-center h-48">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <BarChart3 className="w-8 h-8 text-gray-400" />
+                          </div>
+                          <p className="text-gray-500">No campaign data available</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Top Organizations */}
+                  <Card className="bg-white border border-gray-200">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-lg font-semibold text-gray-900">Top Organizations</CardTitle>
+                      <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <Building2 className="w-4 h-4 text-orange-600" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6 border-t">
+                      <div className="flex items-center justify-center h-48">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Building2 className="w-8 h-8 text-gray-400" />
+                          </div>
+                          <p className="text-gray-500">No organization data available</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Main Empty State */}
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                    <BarChart3 className="w-10 h-10 text-gray-400" />
+                  </div>
+                  
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">No Analytics Data Available</h2>
+                  
+                  <p className="text-gray-600 text-center max-w-md mb-8 leading-relaxed">
+                    Start creating campaigns and generating leads to see your analytics dashboard populate with insights.
+                  </p>
+                  
+                  <Button 
+                    onClick={handleRefresh}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg"
+                  >
+                    <RefreshCcw className="w-4 h-4 mr-2" />
+                    Refresh Data
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </DashboardLayout>
   )

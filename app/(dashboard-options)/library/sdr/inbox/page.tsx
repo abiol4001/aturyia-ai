@@ -22,15 +22,15 @@ interface Email {
   avatar: string;
 }
 
-interface ApprovalGroup {
-  leadEmail: string;
-  leadName: string;
-  campaignName: string;
-  avatar: string;
-  emails: MailLog[];
-  lastMessage: string;
-  unreadCount: number;
-}
+// interface ApprovalGroup {
+//   leadEmail: string;
+//   leadName: string;
+//   campaignName: string;
+//   avatar: string;
+//   emails: MailLog[];
+//   lastMessage: string;
+//   unreadCount: number;
+// }
 
 
 const Inbox = () => {
@@ -52,11 +52,6 @@ const Inbox = () => {
   const approveEmailLeads = useApproveEmailLeads();
   const rejectEmailLeads = useRejectEmailLeads();
 
-  // TODO: Enable when stats endpoint is available
-  // const { 
-  //   data: statsResponse
-  // } = useMailLogStats();
-
   const allMailLogs = mailLogsResponse?.data || [];
   
   // Client-side filtering for search
@@ -73,12 +68,10 @@ const Inbox = () => {
   });
   
   const mailLogs = filteredMailLogs;
-  const stats = null; // Disabled until stats endpoint is available
 
   // Debug logging
   console.log('🔍 Mail Logs API Response:', mailLogsResponse);
   console.log('📧 Mail Logs Data:', mailLogs);
-  console.log('📈 Mail Stats:', stats);
 
   // Transform API data into email format
   const transformMailLogToEmail = (mailLog: MailLog): Email => {
@@ -199,7 +192,13 @@ const Inbox = () => {
       }
       
       const group = groupMap.get(leadEmail);
-      group.emails.push(log);
+      group.emails.push({
+        log_id: log.log_id,
+        mail_subject: log.mail_subject,
+        mail_body: log.agent_mail_content || log.lead_mail_content || log.user_mail_content || '',
+        created_at: log.created_at,
+        service: log.service
+      });
       
       if (new Date(log.created_at) > new Date(group.lastMessage)) {
         group.lastMessage = log.created_at;

@@ -350,3 +350,113 @@ export interface LeadApprovalData {
   task_id: string;
   task_status: string;
 }
+
+// Notification Types
+export interface Notification {
+  id: string;
+  notification_type: string;
+  title: string;
+  description: string;
+  priority: string;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+  campaign_id?: string;
+  campaign_name?: string;
+  lead_id?: string;
+  lead_name?: string;
+  task_id?: string;
+  task_status?: string;
+}
+
+// Analytics Types
+export interface CampaignAnalytics {
+  campaign_id: string;
+  campaign_name: string;
+  created_at: string;
+  total_leads: number;
+  leads_by_status: Record<string, number>;
+  total_emails_sent: number;
+  emails_with_responses: number;
+  response_rate: number;
+  total_meetings_scheduled: number;
+  meetings_by_response: Record<string, number>;
+  meeting_acceptance_rate: number;
+}
+
+export interface EmailAnalytics {
+  total_emails_sent: number;
+  emails_with_responses: number;
+  overall_response_rate: number;
+  emails_by_campaign: Record<string, number>;
+  response_rate_by_campaign: Record<string, number>;
+  emails_by_month: Record<string, number>;
+  responses_by_month: Record<string, number>;
+}
+
+export interface MeetingAnalytics {
+  total_meetings_scheduled: number;
+  meetings_by_response_status: Record<string, number>;
+  meeting_acceptance_rate: number;
+  meetings_by_campaign: Record<string, number>;
+  meetings_by_month: Record<string, number>;
+  average_meeting_duration: number;
+}
+
+export interface LeadAnalytics {
+  total_leads: number;
+  leads_by_status: Record<string, number>;
+  leads_by_campaign: Record<string, number>;
+  leads_by_organization: Record<string, number>;
+  leads_by_month: Record<string, number>;
+  conversion_rate: number;
+}
+
+export interface PerformanceMetrics {
+  total_campaigns: number;
+  active_campaigns: number;
+  total_revenue_potential: number;
+  average_response_time: number;
+  top_performing_campaigns: {
+    campaign_id: string;
+    campaign_name: string;
+    leads_count: number;
+    emails_count: number;
+    meetings_count: number;
+    performance_score: number;
+  }[];
+  recent_activity: {
+    type: string;
+    count: number;
+    period: string;
+  }[];
+}
+
+export interface ChartsData {
+  campaign_performance: {
+    campaign_name: string;
+    leads: number;
+    emails: number;
+    meetings: number;
+    response_rate: number;
+  }[];
+  email_response_rates: unknown[];
+  meeting_response_status: unknown[];
+  lead_status_distribution: unknown[];
+  monthly_trends: {
+    emails: Record<string, number>;
+    responses: Record<string, number>;
+    meetings: Record<string, number>;
+    leads: Record<string, number>;
+  };
+  top_organizations: unknown[];
+}
+
+export interface AnalyticsData {
+  campaign_analytics: CampaignAnalytics[];
+  email_analytics: EmailAnalytics;
+  meeting_analytics: MeetingAnalytics;
+  lead_analytics: LeadAnalytics;
+  performance_metrics: PerformanceMetrics;
+  charts_data: ChartsData;
+}

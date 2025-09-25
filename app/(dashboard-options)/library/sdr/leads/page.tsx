@@ -6,7 +6,7 @@ import { Filter, Mail, Linkedin, Check, X, ChevronDown, RefreshCcw } from 'lucid
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useLeads, useApproveLeads } from '@/lib/api/hooks/useApi';
+import { useLeads, useApproveLeads, useRejectLeads } from '@/lib/api/hooks/useApi';
 import { LeadFilters } from '@/lib/api/types';
 import SearchInput from '@/components/ui/search-input';
 
@@ -28,12 +28,9 @@ const Leads = () => {
 
   // Approve leads mutation
   const approveLeadsMutation = useApproveLeads();
-
-  // TODO: Enable when lead stats endpoint is available
-  // const { 
-  //   data: statsResponse, 
-  //   isLoading: statsLoading
-  // } = useLeadStats();
+  
+  // Reject leads mutation
+  const rejectLeadsMutation = useRejectLeads();
 
   const allLeads = leadsResponse?.data || [];
   
@@ -80,6 +77,35 @@ const Leads = () => {
       setSelectAll(false);
     } catch (error) {
       console.error('Error approving leads:', error);
+    }
+  };
+
+  // Handle individual lead rejection
+  const handleRejectLead = async (leadId: string) => {
+    const leadToReject = leads.find(lead => lead.lead_id === leadId);
+    if (!leadToReject) return;
+
+    try {
+      await rejectLeadsMutation.mutateAsync([leadToReject]);
+      // Remove from selected leads if it was selected
+      setSelectedLeads(prev => prev.filter(id => id !== leadId));
+    } catch (error) {
+      console.error('Error rejecting lead:', error);
+    }
+  };
+
+  // Handle bulk lead rejection
+  const handleRejectSelected = async () => {
+    if (selectedLeads.length === 0) return;
+
+    const leadsToReject = leads.filter(lead => selectedLeads.includes(lead.lead_id));
+    
+    try {
+      await rejectLeadsMutation.mutateAsync(leadsToReject);
+      setSelectedLeads([]);
+      setSelectAll(false);
+    } catch (error) {
+      console.error('Error rejecting leads:', error);
     }
   };
 
@@ -176,11 +202,19 @@ const Leads = () => {
               <div className="flex items-center space-x-2">
                 <Button
                   onClick={handleApproveSelected}
-                  disabled={approveLeadsMutation.isPending}
+                  disabled={approveLeadsMutation.isPending || rejectLeadsMutation.isPending}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
                   <Check className="h-4 w-4 mr-2" />
                   {approveLeadsMutation.isPending ? 'Approving...' : 'Approve Selected'}
+                </Button>
+                <Button
+                  onClick={handleRejectSelected}
+                  disabled={approveLeadsMutation.isPending || rejectLeadsMutation.isPending}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  {rejectLeadsMutation.isPending ? 'Rejecting...' : 'Reject Selected'}
                 </Button>
                 <Button
                   variant="outline"
@@ -318,12 +352,19 @@ const Leads = () => {
                             size="icon" 
                             className="h-8 w-8"
                             onClick={() => handleApproveLead(lead.lead_id)}
-                            disabled={approveLeadsMutation.isPending}
+                            disabled={approveLeadsMutation.isPending || rejectLeadsMutation.isPending}
                             title="Approve lead"
                           >
                             <Check className="h-4 w-4 text-green-600" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => handleRejectLead(lead.lead_id)}
+                          disabled={approveLeadsMutation.isPending || rejectLeadsMutation.isPending}
+                          title="Reject lead"
+                        >
                           <X className="h-4 w-4 text-red-600" />
                         </Button>
                       </div>
