@@ -1,76 +1,34 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sdrService } from '../services/sdrService';
+import { useSdrStore } from '../../store/useSdrStore';
 import { 
   SDRProfileData,
-  AgentConfig,
   CampaignFilters,
   LeadFilters,
   Lead,
   MailLog,
   MailLogFilters,
-  AnalyticsData
+  Message
 } from '../types';
 
-/**
- * Hook for managing SDR agent configuration
- */
-export const useSdrAgentConfig = () => {
-  const [agentConfig, setAgentConfig] = useState<AgentConfig | null>(null);
-  const [isConfigured, setIsConfigured] = useState(false);
-  const [isLaunched, setIsLaunched] = useState(false);
-
-  // Initialize state from API (to be implemented)
-  useEffect(() => {
-    // TODO: Fetch agent configuration from API after authentication
-    const agentId = sdrService.getAgentId();
-    const userId = sdrService.getUserId();
-    const orgId = sdrService.getOrgId();
-
-    setAgentConfig({
-      agentId,
-      userId,
-      orgId,
-      configured: false, // Will be fetched from API
-      launched: false,   // Will be fetched from API
-    });
-    setIsConfigured(false); // Will be fetched from API
-    setIsLaunched(false);   // Will be fetched from API
-  }, []);
-
-  const updateConfig = useCallback((config: Partial<AgentConfig>) => {
-    setAgentConfig(prev => prev ? { ...prev, ...config } : null);
-    if (config.configured !== undefined) {
-      setIsConfigured(config.configured);
-    }
-    if (config.launched !== undefined) {
-      setIsLaunched(config.launched);
-    }
-  }, []);
-
-  return {
-    agentConfig,
-    isConfigured,
-    isLaunched,
-    updateConfig,
-  };
-};
 
 /**
  * Hook for SDR agent configuration workflow
  */
 export const useSdrAgentWorkflow = () => {
   const queryClient = useQueryClient();
-  const { agentConfig, updateConfig } = useSdrAgentConfig();
+  // Import the store version instead of the API version
+  const { agentConfig, updateAgentConfig } = useSdrStore();
 
   // Configure agent mutation
   const configureMutation = useMutation({
     mutationFn: (orgId?: string) => sdrService.configureAgent(orgId),
     onSuccess: (data) => {
       if (data.data) {
-        updateConfig({
+        updateAgentConfig({
           agentId: data.data.agent_id,
           configured: data.data.session?.configured || false,
           sessionId: data.data.session?.id,
@@ -86,7 +44,7 @@ export const useSdrAgentWorkflow = () => {
   const setupProfileMutation = useMutation({
     mutationFn: (profileData: SDRProfileData) => sdrService.setupProfile(profileData),
     onSuccess: () => {
-      updateConfig({ configured: true });
+      updateAgentConfig({ configured: true });
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ['sdr', 'status'] });
     },
@@ -100,7 +58,7 @@ export const useSdrAgentWorkflow = () => {
     mutationFn: (orgId?: string) => sdrService.launchAgent(orgId),
     onSuccess: (data) => {
       if (data.data?.session) {
-        updateConfig({
+        updateAgentConfig({
           launched: data.data.session.launched,
           sessionId: data.data.session.id,
         });
@@ -463,5 +421,110 @@ export const useAnalytics = () => {
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refetch every minute
   });
+};
+
+/**
+ * Hook for fetching SDR agent status
+ */
+export const useSdrStatus = () => {
+  return useQuery({
+    queryKey: ['sdr-status'],
+    queryFn: () => sdrService.getStatus(),
+    staleTime: 10000, // 10 seconds
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+};
+
+/**
+ * Custom hook for chat functionality
+ */
+export const useChat = (apiService: typeof sdrService) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentThreadId, setCurrentThreadId] = useState<string | undefined>();
+
+  const sendMessage = useCallback(async (message: string, files?: File[]) => {
+    if (!message.trim()) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    // Add user message immediately
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: message,
+      isUser: true,
+      timestamp: new Date(),
+      threadId: currentThreadId,
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+
+    try {
+      console.log('🔍 About to call chatMessage API...');
+      const response = await apiService.chatMessage({
+        user_message: message,
+        threadId: currentThreadId,
+        files: files,
+      });
+
+      console.log('🔍 Chat API Response received:', response);
+      console.log('🔍 Response data:', response.output);
+      
+      // Check if response and data exist
+      if (!response) {
+        console.error('🔍 Response is null/undefined');
+        throw new Error('No response received from chat API');
+      }
+
+      // Check if the response structure matches our expected format
+      if (!response.output) {
+        console.error('🔍 Unexpected response structure:', response.output);
+        console.error('🔍 Available keys in response.data:', Object.keys(response.output));
+        throw new Error('Unexpected response structure from chat API');
+      }
+
+      // Extract the text content from the correct structure
+      const responseText = response.output?.result?.text;
+      const threadId = response.thread?.id;
+
+      console.log('🔍 Extracted text:', responseText);
+      console.log('🔍 Thread ID:', threadId);
+
+      // Add AI response
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: responseText || 'No response text available',
+        isUser: false,
+        timestamp: new Date(),
+        threadId: threadId || currentThreadId,
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+      if (threadId) {
+        setCurrentThreadId(threadId);
+      }
+    } catch (err) {
+      console.error('🔍 Chat error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to send message');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [apiService, currentThreadId]);
+
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+    setCurrentThreadId(undefined);
+    setError(null);
+  }, []);
+
+  return {
+    messages,
+    isLoading,
+    error,
+    sendMessage,
+    clearMessages,
+  };
 };
 

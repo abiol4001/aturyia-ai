@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import { Search, Settings, Mail, BarChart2, CalendarClock, Megaphone, Headphones
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AgentProfileModal from '@/components/AgentProfileModal';
 import { useSdrAgentConfig } from '@/lib/store';
-import { useSdrAgentWorkflow } from '@/lib/api/hooks/useApi';
+import { useSdrAgentWorkflow, useSdrStatus } from '@/lib/api/hooks/useApi';
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,6 +18,7 @@ const Dashboard = () => {
   // Get SDR agent configuration state
   const { isConfigured } = useSdrAgentConfig();
   const { launchAgent, isLaunching, launchError } = useSdrAgentWorkflow();
+  const { data: statusData, isLoading: statusLoading, error: statusError } = useSdrStatus();
 
   // Open profile modal for configuration
   const handleOpenProfileModal = () => {
@@ -86,9 +86,33 @@ const Dashboard = () => {
                   <div className="h-9 w-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
                     <ArrowRightCircle className="h-5 w-5" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold leading-tight">SDR Agent</h3>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold leading-tight">SDR Agent</h3>
+                      {statusLoading ? (
+                        <div className="w-2 h-2 bg-gray-300 rounded-full animate-pulse"></div>
+                      ) : statusData?.data?.status ? (
+                        <div className={`w-2 h-2 rounded-full ${
+                          statusData.data.status.launched && statusData.data.status.session_exists ? 'bg-green-500' : 
+                          statusData.data.status.configured ? 'bg-yellow-500' : 
+                          'bg-gray-400'
+                        }`}></div>
+                      ) : null}
+                    </div>
                     <p className="text-sm text-muted-foreground">Outbound sales automation for pipeline generation</p>
+                    {statusData?.data?.status && (
+                      <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                        <p>
+                          Status: <span className="capitalize font-medium">
+                            {statusData.data.status.launched && statusData.data.status.session_exists ? 'Running' : 
+                             statusData.data.status.launched ? 'Launched' : 
+                             statusData.data.status.configured ? 'Configured' : 'Not Configured'}
+                          </span>
+                        </p>
+                      
+              
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -114,11 +138,19 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-3 p-4 md:p-6">
-                {/* Error display */}
+                {/* Error displays */}
                 {launchError && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                     <p className="text-sm text-red-700">
                       Failed to launch agent. Please try again.
+                    </p>
+                  </div>
+                )}
+                
+                {statusError && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-sm text-yellow-700">
+                      Unable to fetch agent status. Please check your connection.
                     </p>
                   </div>
                 )}

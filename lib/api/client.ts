@@ -1,8 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://3.9.123.182:8000';
-const API_TIMEOUT = 10000; // 10 seconds
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://3.9.123.182:8000';
+const API_TIMEOUT = 60000; // 1 minute
 
 // Create axios instance
 export const apiClient: AxiosInstance = axios.create({

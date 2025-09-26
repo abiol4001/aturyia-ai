@@ -21,15 +21,22 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
+import { useChat } from '@/lib/api/hooks/useApi';
+import { sdrService } from '@/lib/api/services/sdrService';
 
 const ChatPage = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
-  const [message, setMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Use the chat hook
+  const { messages, isLoading, error, sendMessage, clearMessages } = useChat(sdrService);
 
   const [conversations, setConversations] = useState([
     {
@@ -217,66 +224,42 @@ const ChatPage = () => {
     setSelectedConversation(newChatId);
   };
 
-  const handleSendMessage = () => {
-    if (message.trim() && selectedConversation) {
-      const now = new Date();
-      const userMessage = {
-        id: Date.now().toString(),
-        content: message.trim(),
-        timestamp: now.toISOString(),
-        sender: 'User'
-      };
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
 
-      // Add user message to the current conversation
-      setConversations(prev => prev.map(conv => 
-        conv.id === selectedConversation 
-          ? {
-              ...conv,
-              messages: [...(conv.messages || []), userMessage],
-              lastMessage: userMessage.content,
-              timestamp: now.toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit',
-                hour12: true 
-              })
-            }
-          : conv
-      ));
-
-      setMessage('');
-
-      // Scroll to bottom after user message
-      setTimeout(() => scrollToBottom(), 100);
-
-      // Simulate agent response after a short delay
-      setTimeout(() => {
-        const agentResponse = {
-          id: (Date.now() + 1).toString(),
-          content: "I understand your message. How can I help you further with your SDR campaign?",
-          timestamp: new Date().toISOString(),
-          sender: 'SDR Agent'
-        };
-
-        setConversations(prev => prev.map(conv => 
-          conv.id === selectedConversation 
-            ? {
-                ...conv,
-                messages: [...conv.messages, agentResponse],
-                lastMessage: agentResponse.content
-              }
-            : conv
-        ));
-
-        // Scroll to bottom after agent response
-        setTimeout(() => scrollToBottom(), 100);
-      }, 1000);
+    await sendMessage(inputMessage, selectedFiles);
+    setInputMessage('');
+    setSelectedFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
+
+    // Scroll to bottom after sending
+    setTimeout(() => scrollToBottom(), 100);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFiles(Array.from(e.target.files));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputMessage.trim() || isLoading) return;
+
+    await sendMessage(inputMessage, selectedFiles);
+    setInputMessage('');
+    setSelectedFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -290,7 +273,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     adjustTextareaHeight();
-  }, [message]);
+  }, [inputMessage]);
 
   return (
     <DashboardLayout agentType="sdr">
@@ -379,9 +362,12 @@ const ChatPage = () => {
                         <Save className='w-3 h-3' />
                         <span>Save</span>
                       </div>
-                      <div className='flex items-center gap-2 cursor-pointer w-full hover:bg-gray-50 p-2 rounded-md'>
+                      <div 
+                        className='flex items-center gap-2 cursor-pointer w-full hover:bg-gray-50 p-2 rounded-md'
+                        onClick={clearMessages}
+                      >
                         <RefreshCcw className='w-3 h-3' />
-                        <span>Reset</span>
+                        <span>Clear Chat</span>
                       </div>
                       <div className='flex items-center gap-2 cursor-pointer w-full hover:bg-gray-50 p-2 rounded-md'>
                         <ChartArea className='w-3 h-3' />
@@ -395,9 +381,6 @@ const ChatPage = () => {
               {/* Chat Messages Area */}
               <div className="flex-1 overflow-y-auto p-4">
                 {(() => {
-                  const currentConversation = conversations.find(conv => conv.id === selectedConversation);
-                  const messages = currentConversation?.messages || [];
-                  
                   if (messages.length === 0) {
                     return (
                       <div className="text-center py-8">
@@ -406,7 +389,12 @@ const ChatPage = () => {
                     );
                   }
 
-                  const groupedMessages = groupMessagesByDate(messages);
+                  const groupedMessages = groupMessagesByDate(messages.map(msg => ({
+                    id: msg.id,
+                    content: msg.content,
+                    timestamp: msg.timestamp.toISOString(),
+                    sender: msg.isUser ? 'User' : 'SDR Agent'
+                  })));
                   
                   return Object.entries(groupedMessages).map(([date, dayMessages]) => (
                     <div key={date}>
@@ -479,35 +467,86 @@ const ChatPage = () => {
                   ));
                 })()}
                 
+                {/* Loading indicator */}
+                {isLoading && (
+                  <div className="flex items-end space-x-3 mb-6">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                      <span className="font-semibold text-sm text-orange-600">S</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="rounded-lg px-4 py-3 bg-orange-50 text-gray-800 max-w-md">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error display */}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                )}
+                
                 {/* Scroll trigger element */}
                 <div ref={messagesEndRef} />
               </div>
 
               {/* Message Input Area */}
               <div className="border-t border-gray-200 p-4">
-                <div className="flex items-center space-x-3">
-                  <Button variant="ghost" size="sm" className="p-2">
-                    <Paperclip className="w-5 h-5 text-gray-400" />
-                  </Button>
-                  <div className="flex-1">
-                    <Textarea
-                      ref={textareaRef}
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Type your message here..."
-                      className="border-gray-300 resize-none min-h-[50px] max-h-[150px] overflow-y-auto"
-                      rows={1}
+                <form onSubmit={handleSubmit}>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      onChange={handleFileChange}
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.txt,.csv,.xlsx"
                     />
+                    <Button 
+                      type="button"
+                      variant="ghost" 
+                      size="sm" 
+                      className="p-2"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Paperclip className="w-5 h-5 text-gray-400" />
+                    </Button>
+                    <div className="flex-1">
+                      <Textarea
+                        ref={textareaRef}
+                        value={inputMessage}
+                        onChange={(e) => setInputMessage(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Type your message here..."
+                        className="border-gray-300 resize-none min-h-[50px] max-h-[150px] overflow-y-auto"
+                        rows={1}
+                        disabled={isLoading}
+                      />
+                      {selectedFiles.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {selectedFiles.map((file, index) => (
+                            <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                              {file.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={!inputMessage.trim() || isLoading}
+                      className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Send className="w-5 h-5" />
+                    </Button>
                   </div>
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={!message.trim()}
-                    className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Send className="w-5 h-5" />
-                  </Button>
-                </div>
+                </form>
               </div>
             </>
           ) : (

@@ -72,17 +72,52 @@ export interface AgentConfig {
 }
 
 export interface SDRStatusData {
-  isActive: boolean;
-  isPaused: boolean;
-  isError: boolean;
-  lastActivity: string | null;
-  metrics: {
-    totalEmails: number;
-    sentEmails: number;
-    repliedEmails: number;
-    openRate: number;
-    replyRate: number;
-  } | null;
+  status: {
+    configured: boolean;
+    launched: boolean;
+    session_exists: boolean;
+    agent_id: string;
+  };
+}
+
+// Chat Types
+export interface Message {
+  id: string;
+  content: string;
+  isUser: boolean;
+  timestamp: Date;
+  threadId?: string;
+}
+
+export interface ChatResponse {
+  code: number;
+  message: string;
+  output: {
+    result_title: string;
+    result_type: string;
+    result: {
+      data: {
+        campaigns?: number;
+        leads?: number;
+        mail_logs?: number;
+        meetings?: number;
+        active_campaigns?: string[];
+        [key: string]: unknown;
+      };
+      text: string;
+    };
+    task: {
+      type: string | null;
+      intent: string;
+      status: string | null;
+      id: string | null;
+    };
+    task_approval_flag: string;
+  };
+  thread: {
+    id: string;
+    title: string;
+  };
 }
 
 // Campaign Types

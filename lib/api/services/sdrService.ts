@@ -17,7 +17,8 @@ import {
   KnowledgeBaseFile,
   CampaignDetails,
   LeadApprovalRequest,
-  AnalyticsData
+  AnalyticsData,
+  ChatResponse
 } from '../types';
 import {
   getUserId,
@@ -168,7 +169,7 @@ export const sdrService = {
 
   /**
    * Get SDR Agent Status
-   * POST /users/{user_id}/sdr/status
+   * GET /users/{user_id}/sdr/status?org_id={org_id}
    */
   getStatus: async (orgId?: string): Promise<ApiResponse<SDRStatusData>> => {
     const userId = getUserId();
@@ -176,12 +177,74 @@ export const sdrService = {
     const url = `/users/${userId}/sdr/status`;
 
     try {
-      const response = await api.post<ApiResponse<SDRStatusData>>(url, {
-        org_id: org
+      const response = await api.get<ApiResponse<SDRStatusData>>(url, {
+        params: {
+          org_id: org
+        }
       });
       return response;
     } catch (error) {
       console.error('Error getting SDR agent status:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Send chat message
+   * POST /users/{user_id}/agents/sdr/{agent_id}/chat
+   */
+  chatMessage: async (data: { user_message: string; threadId?: string; files?: File[] }): Promise<ChatResponse> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/chat`;
+
+    
+    if (!userId) {
+      throw new Error('User ID is not available');
+    }
+    
+    if (!agentId) {
+      throw new Error('Agent ID is not available');
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('user_message', data.user_message);
+      
+      if (data.threadId) {
+        formData.append('thread_id', data.threadId);
+      }
+
+      // Add files if provided
+      if (data.files && data.files.length > 0) {
+        data.files.forEach((file) => {
+          formData.append(`files`, file);
+        });
+      }
+
+      console.log('🔍 FormData contents:');
+      for (const [key, value] of formData.entries()) {
+        console.log(`  ${key}:`, value);
+      }
+
+      const response = await api.post<ApiResponse<ChatResponse>>(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      console.log('🔍 SDR Service Chat Response:', response);
+      console.log('🔍 SDR Service Response Data:', response.data);
+      
+      return response.data;
+    } catch (error) {
+      console.error('🔍 Chat API Error:', error);
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: unknown; status?: number } };
+        console.error('🔍 Error Response:', axiosError.response);
+        console.error('🔍 Error Response Data:', axiosError.response?.data);
+        console.error('🔍 Error Response Status:', axiosError.response?.status);
+      }
       throw error;
     }
   },
@@ -528,9 +591,7 @@ export const sdrService = {
       
       console.log('🔍 approveEmailLeads Request Body:', JSON.stringify(requestBody, null, 2));
       
-      const response = await api.post<ApiResponse<{ message: string; approved_count: number }>>(url, requestBody, {
-        timeout: 30000 // 30 seconds timeout for email approval
-      });
+        const response = await api.post<ApiResponse<{ message: string; approved_count: number }>>(url, requestBody);
       console.log('🔍 approveEmailLeads API Response:', response);
       return response;
     } catch (error) {
@@ -671,9 +732,7 @@ export const sdrService = {
       
       console.log('🔍 rejectEmailLeads Request Body:', JSON.stringify(requestBody, null, 2));
       
-      const response = await api.post<ApiResponse<{ message: string; rejected_count: number }>>(url, requestBody, {
-        timeout: 30000 // 30 seconds timeout for email rejection
-      });
+      const response = await api.post<ApiResponse<{ message: string; rejected_count: number }>>(url, requestBody);
       console.log('🔍 rejectEmailLeads API Response:', response);
       return response;
     } catch (error) {
@@ -699,9 +758,7 @@ export const sdrService = {
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        const response = await api.post<ApiResponse<unknown>>(url, productInfo, {
-          timeout: 120000 // 2 minutes timeout for AI processing
-        });
+        const response = await api.post<ApiResponse<unknown>>(url, productInfo);
         console.log('🔍 getICPCharacteristics API Response:', response);
         return response;
       } catch (error) {
@@ -729,9 +786,7 @@ export const sdrService = {
     const url = `/users/${userId}/agents/sdr/${agentId}/campaigns/${campaignId}/icp`;
 
     try {
-      const response = await api.post<ApiResponse<{ message: string; icp_id: string }>>(url, icpData, {
-        timeout: 30000 // 30 seconds timeout for ICP submission
-      });
+      const response = await api.post<ApiResponse<{ message: string; icp_id: string }>>(url, icpData);
       console.log('🔍 submitICP API Response:', response);
       return response;
     } catch (error) {
@@ -812,9 +867,7 @@ export const sdrService = {
     };
 
     try {
-      const response = await api.post<ApiResponse<unknown>>(url, requestBody, {
-        timeout: 60000 // 60 seconds timeout for lead approval
-      });
+      const response = await api.post<ApiResponse<unknown>>(url, requestBody);
       console.log('🔍 approveLeads API Response:', response);
       return response;
     } catch (error) {
@@ -863,9 +916,7 @@ export const sdrService = {
     };
 
     try {
-      const response = await api.post<ApiResponse<unknown>>(url, requestBody, {
-        timeout: 60000 // 60 seconds timeout for lead rejection
-      });
+      const response = await api.post<ApiResponse<unknown>>(url, requestBody);
       console.log('🔍 rejectLeads API Response:', response);
       return response;
     } catch (error) {

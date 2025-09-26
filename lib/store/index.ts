@@ -31,7 +31,6 @@ export {
   useUploadKnowledgeBase,
   useCampaignDetails,
   useApproveLeads,
-  useSdrAgentConfig as useSdrAgentConfigApi,
   useSdrAgentWorkflow,
   useSdrAgentStatus
 } from '../api/hooks/useApi';
