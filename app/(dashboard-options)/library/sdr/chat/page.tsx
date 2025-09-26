@@ -25,6 +25,20 @@ import {
 import { useChat } from '@/lib/api/hooks/useApi';
 import { sdrService } from '@/lib/api/services/sdrService';
 
+interface Conversation {
+  id: string;
+  title: string;
+  lastMessage: string;
+  messages: Array<{
+    id: string;
+    content: string;
+    timestamp: string;
+    sender: string;
+  }>;
+  date: string;
+  timestamp: string;
+}
+
 const ChatPage = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -38,128 +52,72 @@ const ChatPage = () => {
   // Use the chat hook
   const { messages, isLoading, error, sendMessage, clearMessages } = useChat(sdrService);
 
-  const [conversations, setConversations] = useState([
-    {
-      id: '1',
-      title: 'Campaign Strategy Discussion',
-      lastMessage: 'Let me help you optimize your campaign...',
-      messages: [
-        {
-          id: '1',
-          content: 'Hi there! How can I assist you with your SDR campaign today?',
-          timestamp: '2025-01-15T09:30:00Z',
-          sender: 'SDR Agent'
-        },
-        {
-          id: '2',
-          content: 'I need help setting up a new campaign for our product launch.',
-          timestamp: '2025-01-15T09:32:00Z',
-          sender: 'User'
-        },
-        {
-          id: '3',
-          content: 'Great! Let me help you optimize your campaign strategy. What industry are you targeting?',
-          timestamp: '2025-01-15T09:33:00Z',
-          sender: 'SDR Agent'
-        },
-        {
-          id: '4',
-          content: 'We\'re targeting SaaS companies with 50-500 employees.',
-          timestamp: '2025-01-15T09:35:00Z',
-          sender: 'User'
-        },
-        {
-          id: '5',
-          content: 'Perfect! I can help you create targeted messaging for that segment. Let me set up some templates.',
-          timestamp: '2025-01-15T09:36:00Z',
-          sender: 'SDR Agent'
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  // Handle adding new messages to the current conversation
+  const addMessageToCurrentConversation = useCallback((message: { id: string; content: string; timestamp: Date; isUser: boolean; threadId?: string }) => {
+    if (!selectedConversation) return;
+    
+    // Create a unique message ID that includes the conversation ID to prevent cross-contamination
+    const uniqueMessageId = `${selectedConversation}-${message.id}`;
+    
+    const conversationMessage = {
+      id: uniqueMessageId,
+      content: message.content,
+      timestamp: message.timestamp.toISOString(),
+      sender: message.isUser ? 'User' : 'SDR Agent'
+    };
+    
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === selectedConversation) {
+        // Check if message already exists to avoid duplicates
+        const exists = conv.messages.some(msg => msg.id === uniqueMessageId);
+        if (!exists) {
+          const updatedMessages = [...conv.messages, conversationMessage];
+          // Sort messages by timestamp
+          updatedMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+          
+          return {
+            ...conv,
+            messages: updatedMessages,
+            lastMessage: conversationMessage.content
+          };
         }
-      ],
-      date: 'Jan 15',
-      timestamp: '9:36 AM'
-    },
-    {
-      id: '2',
-      title: 'Lead Qualification Help',
-      lastMessage: 'Here are the best practices for lead scoring...',
-      messages: [
-        {
-          id: '6',
-          content: 'Good morning! I need help with lead qualification criteria.',
-          timestamp: '2025-01-16T08:15:00Z',
-          sender: 'User'
-        },
-        {
-          id: '7',
-          content: 'I\'d be happy to help! What specific aspects of lead qualification are you struggling with?',
-          timestamp: '2025-01-16T08:16:00Z',
-          sender: 'SDR Agent'
-        },
-        {
-          id: '8',
-          content: 'We\'re getting too many unqualified leads. How can we improve our targeting?',
-          timestamp: '2025-01-16T08:18:00Z',
-          sender: 'User'
-        },
-        {
-          id: '9',
-          content: 'Here are the best practices for lead scoring: 1) Define your ideal customer profile clearly 2) Use firmographic data 3) Track engagement signals. Would you like me to help you set up a scoring system?',
-          timestamp: '2025-01-16T08:20:00Z',
-          sender: 'SDR Agent'
-        }
-      ],
-      date: 'Jan 16',
-      timestamp: '8:20 AM'
-    },
-    {
-      id: '3',
-      title: 'Email Template Review',
-      lastMessage: 'Your email templates look great!',
-      messages: [
-        {
-          id: '10',
-          content: 'Can you review my email templates for the new campaign?',
-          timestamp: '2025-01-17T14:30:00Z',
-          sender: 'User'
-        },
-        {
-          id: '11',
-          content: 'Absolutely! Please share your templates and I\'ll provide detailed feedback.',
-          timestamp: '2025-01-17T14:31:00Z',
-          sender: 'SDR Agent'
-        },
-        {
-          id: '12',
-          content: 'Here\'s my cold outreach template: "Hi [Name], I noticed your company recently...',
-          timestamp: '2025-01-17T14:33:00Z',
-          sender: 'User'
-        },
-        {
-          id: '13',
-          content: 'Your email templates look great! The personalization is spot-on. I suggest adding a clear call-to-action and keeping the subject line under 50 characters.',
-          timestamp: '2025-01-17T14:35:00Z',
-          sender: 'SDR Agent'
-        },
-        {
-          id: '14',
-          content: 'The personalization is spot-on. I suggest adding a clear call-to-action and keeping the subject line under 50 characters.',
-          timestamp: '2025-01-18T14:35:00Z',
-          sender: 'SDR Agent'
-        },
-        {
-          id: '15',
-          content: 'I suggest adding a clear call-to-action and keeping the subject line under 50 characters.',
-          timestamp: '2025-09-21T14:35:00Z',
-          sender: 'SDR Agent'
-        }
-      ],
-      date: 'Jan 17',
-      timestamp: '2:35 PM'
+        return conv;
+      }
+      return conv;
+    }));
+  }, [selectedConversation]);
+
+  // Track the last processed message count to only process new messages
+  const lastProcessedMessageCount = useRef(0);
+  
+  // Sync API messages with current conversation only
+  useEffect(() => {
+    if (selectedConversation && messages.length > 0) {
+      // Only process new messages that have been added since the last check
+      if (messages.length > lastProcessedMessageCount.current) {
+        const newMessages = messages.slice(lastProcessedMessageCount.current);
+        
+        // Process each new message
+        newMessages.forEach(message => {
+          if (message && message.timestamp) {
+            addMessageToCurrentConversation(message);
+          }
+        });
+        
+        // Update the processed count
+        lastProcessedMessageCount.current = messages.length;
+      }
     }
-  ]);
+  }, [messages, selectedConversation, addMessageToCurrentConversation]);
 
   const handleConversationClick = (conversationId: string) => {
     setSelectedConversation(conversationId);
+    // Clear global messages when switching conversations to ensure each chat has independent history
+    clearMessages();
+    // Reset the processed message count to prevent cross-contamination
+    lastProcessedMessageCount.current = 0;
     // Scroll to bottom when switching conversations
     setTimeout(() => scrollToBottom(), 100);
   };
@@ -211,11 +169,18 @@ const ChatPage = () => {
       day: 'numeric' 
     });
 
+    const welcomeMessage = {
+      id: `${newChatId}-welcome`,
+      content: 'Hi there! How can I assist you today?',
+      timestamp: new Date().toISOString(),
+      sender: 'SDR Agent'
+    };
+
     const newChat = {
       id: newChatId,
       title: `New Chat ${conversations.length + 1}`,
-      lastMessage: 'Hi there! How can I assist you...',
-      messages: [], // Start with empty messages for new chat
+      lastMessage: 'Hi there! How can I assist you today?',
+      messages: [welcomeMessage], // Start with welcome message from SDR agent
       date: dateString,
       timestamp: timeString
     };
@@ -328,7 +293,7 @@ const ChatPage = () => {
                       }`}
                     >
                       <div className="font-semibold text-gray-900 text-sm">{conversation.title}</div>
-                      <div className="text-gray-600 text-xs mt-1">{conversation.lastMessage}</div>
+                      <div className="text-gray-600 text-xs mt-1 truncate">{conversation.lastMessage}</div>
                       <div className="text-gray-400 text-xs mt-2">{conversation.date}</div>
                     </div>
                   ))}
@@ -381,7 +346,11 @@ const ChatPage = () => {
               {/* Chat Messages Area */}
               <div className="flex-1 overflow-y-auto p-4">
                 {(() => {
-                  if (messages.length === 0) {
+                  // Get messages from the selected conversation only
+                  const currentConversation = conversations.find(conv => conv.id === selectedConversation);
+                  const conversationMessages = currentConversation?.messages || [];
+                  
+                  if (conversationMessages.length === 0) {
                     return (
                       <div className="text-center py-8">
                         <p className="text-gray-500">No messages yet. Start the conversation!</p>
@@ -389,12 +358,7 @@ const ChatPage = () => {
                     );
                   }
 
-                  const groupedMessages = groupMessagesByDate(messages.map(msg => ({
-                    id: msg.id,
-                    content: msg.content,
-                    timestamp: msg.timestamp.toISOString(),
-                    sender: msg.isUser ? 'User' : 'SDR Agent'
-                  })));
+                  const groupedMessages = groupMessagesByDate(conversationMessages);
                   
                   return Object.entries(groupedMessages).map(([date, dayMessages]) => (
                     <div key={date}>
@@ -428,7 +392,7 @@ const ChatPage = () => {
                       
                       {/* Messages for this day */}
                       {dayMessages.map((message) => (
-                        <div key={message.id} className={`flex items-end space-x-3 mb-6 ${message.sender === 'User' ? 'flex-row-reverse' : ''}`}>
+                        <div key={message.id} className={`flex items-end space-x-1 mb-6 ${message.sender === 'User' ? 'flex-row-reverse gap-x-1' : ''}`}>
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                             message.sender === 'User' 
                               ? 'bg-blue-100' 
@@ -453,7 +417,7 @@ const ChatPage = () => {
                                 })}
                               </span>
                             </div>
-                            <div className={`rounded-lg px-4 py-3 max-w-md ${
+                            <div className={`rounded-lg px-4 py-3 max-w-md w-fit ${
                               message.sender === 'User' 
                                 ? 'bg-blue-500 text-white' 
                                 : 'bg-orange-50 text-gray-800'

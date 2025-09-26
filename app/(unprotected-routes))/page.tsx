@@ -454,7 +454,6 @@ export default function Home() {
 
       {/* Pricing section */}
       <section 
-        className="bg-amber-500 py-14 md:py-24 px-4 md:px-14 lg:px-24 space-y-11 scroll-mt-[72px] relative overflow-hidden" 
         id="pricing"
         data-animate="pricing"
       >
@@ -498,9 +497,29 @@ export default function Home() {
             <CheckCircle className="text-green-400 h-6 w-6 drop-shadow-md animate-pulse" style={{ animationDelay: '1s' }} />
             <p className="font-medium text-white text-sm">Cancel anytime</p>
           </div>
-          <div className="rounded-full border-[0.5px] border-white/25 bg-gradient-to-r from-white/15 to-white/5 backdrop-blur-2xl p-3 flex gap-x-2 items-center w-fit shrink-0 shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-300">
-            <CheckCircle className="text-green-400 h-6 w-6 drop-shadow-md animate-pulse" style={{ animationDelay: '2s' }} />
-            <p className="font-medium text-white text-sm">SOC2-ready infrastructure</p>
+        </div>
+
+        {/* Security and Compliance Section */}
+        <div className="mt-8 flex flex-col items-center">
+          <div className="rounded-xl border-[0.5px] border-white/25 bg-gradient-to-r from-white/15 to-white/5 backdrop-blur-2xl p-6 flex flex-col items-center gap-4 shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-300">
+            <p className="font-medium text-white text-sm text-center">Security and compliance you can trust</p>
+            <div className="flex items-center gap-6">
+              {/* SOC 2 Logo */}
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-16 h-16 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                  <span className="text-white font-bold text-lg">SOC</span>
+                </div>
+                <span className="text-white/80 text-xs font-medium">SOC 2</span>
+              </div>
+              
+              {/* ISO 27001 Logo */}
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-16 h-16 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                  <span className="text-white font-bold text-xs">ISO</span>
+                </div>
+                <span className="text-white/80 text-xs font-medium">ISO 27001</span>
+              </div>
+            </div>
           </div>
         </div>
 

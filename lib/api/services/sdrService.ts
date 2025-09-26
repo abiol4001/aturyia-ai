@@ -193,7 +193,7 @@ export const sdrService = {
    * Send chat message
    * POST /users/{user_id}/agents/sdr/{agent_id}/chat
    */
-  chatMessage: async (data: { user_message: string; threadId?: string; files?: File[] }): Promise<ChatResponse> => {
+  chatMessage: async (data: { user_message: string; threadId?: string; files?: File[] }): Promise<ApiResponse<ChatResponse>> => {
     const userId = getUserId();
     const agentId = getSdrAgentId();
     const url = `/users/${userId}/agents/sdr/${agentId}/chat`;
@@ -234,9 +234,8 @@ export const sdrService = {
       });
       
       console.log('🔍 SDR Service Chat Response:', response);
-      console.log('🔍 SDR Service Response Data:', response.data);
-      
-      return response.data;
+
+      return response;
     } catch (error) {
       console.error('🔍 Chat API Error:', error);
       if (error && typeof error === 'object' && 'response' in error) {

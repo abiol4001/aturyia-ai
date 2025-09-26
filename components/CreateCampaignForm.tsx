@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Check, Loader2 } from 'lucide-react';
 import { useSubmitICP, useGetICPCharacteristics } from '@/lib/api/hooks/useApi';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 // Using crypto.randomUUID() for UUID generation
 
 interface FormData {
@@ -224,12 +225,6 @@ const CreateCampaignForm: React.FC = () => {
     if (currentStep === 1) {
       // After Step 1, get AI recommendations
       setIsGeneratingCharacteristics(true);
-      
-      // Show loading toast
-      toast.loading('Generating AI Recommendations...', {
-        description: 'Please wait while we analyze your product information.',
-        duration: 30000, // Will be dismissed when success/error toast shows
-      });
       
       try {
         // Generate a unique campaign ID using UUID
@@ -685,6 +680,32 @@ const CreateCampaignForm: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* AI Generation Modal */}
+      <Dialog open={isGeneratingCharacteristics} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-orange-600" />
+              Generating AI Recommendations
+            </DialogTitle>
+            <DialogDescription className="text-center py-4">
+              Please wait while we analyze your product information and generate intelligent campaign suggestions.
+              <br />
+              <span className="text-sm text-gray-500 mt-2 block">
+                This process may take up to 30 seconds...
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <div className="flex space-x-1">
+              <div className="w-2 h-2 bg-orange-600 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-orange-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-orange-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

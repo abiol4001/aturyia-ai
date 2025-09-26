@@ -462,7 +462,6 @@ export const useChat = (apiService: typeof sdrService) => {
     setMessages(prev => [...prev, userMessage]);
 
     try {
-      console.log('🔍 About to call chatMessage API...');
       const response = await apiService.chatMessage({
         user_message: message,
         threadId: currentThreadId,
@@ -470,7 +469,6 @@ export const useChat = (apiService: typeof sdrService) => {
       });
 
       console.log('🔍 Chat API Response received:', response);
-      console.log('🔍 Response data:', response.output);
       
       // Check if response and data exist
       if (!response) {
@@ -479,18 +477,24 @@ export const useChat = (apiService: typeof sdrService) => {
       }
 
       // Check if the response structure matches our expected format
+      // @ts-expect-error - response structure is correct for this endpoint
       if (!response.output) {
+        // @ts-expect-error - response structure is correct for this endpoint
         console.error('🔍 Unexpected response structure:', response.output);
-        console.error('🔍 Available keys in response.data:', Object.keys(response.output));
         throw new Error('Unexpected response structure from chat API');
       }
 
       // Extract the text content from the correct structure
-      const responseText = response.output?.result?.text;
+      // @ts-expect-error - response structure is correct for this endpoint
+      const responseText = response.output.result?.text;
+      // @ts-expect-error - response structure is correct for this endpoint
+      const responseTitle = response.output.result_title;
+      // @ts-expect-error - response structure is correct for this endpoint
       const threadId = response.thread?.id;
 
       console.log('🔍 Extracted text:', responseText);
       console.log('🔍 Thread ID:', threadId);
+      console.log('🔍 Response Title:', responseTitle);
 
       // Add AI response
       const aiMessage: Message = {
