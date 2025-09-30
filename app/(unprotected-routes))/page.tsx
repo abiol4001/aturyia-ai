@@ -65,18 +65,10 @@ export default function Home() {
         {/* Main Hero Content */}
         <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-4 relative z-10">
           <div className="max-w-7xl mx-auto w-full">
-            <div className="text-center space-y-8 py-4">
-              {/* Hero Badge */}
-              <div 
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 animate-fade-in-up"
-                style={{ animationDelay: '0.2s' }}
-              >
-                <Bot className="h-4 w-4 text-amber-600 animate-bounce" style={{ animationDuration: '2s' }} />
-                <span className="text-sm font-medium text-amber-700">AI-Powered Workforce</span>
-              </div>
+            <div className="text-center space-y-8 py-10">
 
               {/* Main Heading */}
-              <div className="space-y-4">
+              <div className="space-y-10">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
                   <span 
                     className="block text-gray-900 animate-fade-in-up"
@@ -108,7 +100,6 @@ export default function Home() {
                 style={{ animationDelay: '1s' }}
               >
                 <Button className="h-14 px-8 text-lg font-semibold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 min-w-[200px] hover:scale-105 hover:-translate-y-1">
-                  <Rocket className="mr-2 h-5 w-5" />
                   Get Started Today
                 </Button>
                 <Button variant="outline" className="h-14 px-8 text-lg font-semibold border-2 border-gray-300 hover:border-gray-400 rounded-full min-w-[200px] transition-all duration-300 hover:scale-105 hover:-translate-y-1">
@@ -456,6 +447,7 @@ export default function Home() {
       <section 
         id="pricing"
         data-animate="pricing"
+        className="bg-amber-500 xl:h-fit py-10 md:py-12 px-4 md:px-14 lg:px-24 space-y-4 scroll-mt-[72px] relative overflow-hidden" 
       >
         {/* Animated background elements */}
         <div className="absolute inset-0">

@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Pause, Play, Plus, RefreshCcw, Target, Mail, Clock, Zap, BarChart3 } from 'lucide-react';
+import { Pause, Play, Plus, RefreshCcw, Target, Mail, Clock, Zap, BarChart3, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -15,25 +15,33 @@ import { useRouter } from 'next/navigation';
 
 const Campaigns = () => {
   const [filters, setFilters] = useState<CampaignFilters>({});
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const campaignsPerPage = 5;
+
 
   // Fetch campaigns and stats from API
-  const { 
-    data: campaignsResponse, 
-    isLoading: campaignsLoading, 
+  const {
+    data: campaignsResponse,
+    isLoading: campaignsLoading,
     error: campaignsError,
-    refetch: refetchCampaigns 
+    refetch: refetchCampaigns
   } = useCampaigns(filters);
 
-  // TODO: Enable when stats endpoint is available
-  // const { 
-  //   data: statsResponse, 
-  //   isLoading: statsLoading
-  // } = useCampaignStats();
 
   const campaigns = campaignsResponse?.data || [];
   const isEmpty = campaigns.length === 0 && !campaignsLoading;
   const router = useRouter();
+
+  // Pagination logic
+  const totalPages = Math.ceil(campaigns.length / campaignsPerPage);
+  const startIndex = (currentPage - 1) * campaignsPerPage;
+  const endIndex = startIndex + campaignsPerPage;
+  const visibleCampaigns = campaigns.slice(startIndex, endIndex);
+
+  // Reset to first page when campaigns change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [campaigns.length]);
 
   // Debug logging
   console.log('🔍 Campaigns API Response:', campaignsResponse);
@@ -54,18 +62,18 @@ const Campaigns = () => {
     // Use created_at date for calendar positioning
     const startDate = new Date(campaign.created_at);
     const date = startDate.getDate();
-    
-    
+
+
     // Find existing entry for this date or create new one
     let dateEntry = acc.find(entry => entry.date === date);
     if (!dateEntry) {
-      dateEntry = { 
-        date, 
-        campaigns: [] 
+      dateEntry = {
+        date,
+        campaigns: []
       };
       acc.push(dateEntry);
     }
-    
+
     // Add campaign to the date entry (convert string id to number for calendar compatibility)
     dateEntry.campaigns.push({
       id: parseInt(campaign.id.substring(0, 8), 16) || Math.floor(Math.random() * 10000), // Convert hex string to number
@@ -73,7 +81,7 @@ const Campaigns = () => {
       schedule: `${campaign.schedules?.START || '09:00'} - ${campaign.schedules?.END || '17:00'}`,
       status: 'READY'
     });
-    
+
     return acc;
   }, []);
 
@@ -101,6 +109,19 @@ const Campaigns = () => {
     setFilters(prev => ({ ...prev, search: query }));
   }, []);
 
+  // Pagination handlers
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePageClick = (page: number) => {
+    setCurrentPage(page);
+  };
+
 
   // Empty State Component
   const EmptyState = () => (
@@ -109,7 +130,7 @@ const Campaigns = () => {
         {/* Logo/Icon */}
         <div className="mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <Target className="w-10 h-10 text-white" />
+            <Megaphone className="w-10 h-10 text-white" />
           </div>
         </div>
 
@@ -131,14 +152,14 @@ const Campaigns = () => {
             </div>
             <p className="text-sm font-medium text-gray-700">Target your ideal customers</p>
           </div>
-          
+
           <div className="bg-gray-50 rounded-lg p-4 text-center">
             <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-3">
               <Zap className="w-6 h-6 text-gray-600" />
             </div>
             <p className="text-sm font-medium text-gray-700">Automate your outreach</p>
           </div>
-          
+
           <div className="bg-gray-50 rounded-lg p-4 text-center">
             <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-3">
               <BarChart3 className="w-6 h-6 text-gray-600" />
@@ -149,7 +170,7 @@ const Campaigns = () => {
 
         {/* CTA Button */}
         <div className="mb-6">
-          <Button 
+          <Button
             onClick={() => router.push('/library/sdr/campaigns/create')}
             className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-3 text-lg font-semibold rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
           >
@@ -187,11 +208,11 @@ const Campaigns = () => {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Target className="w-8 h-8 text-red-500" />
+              <Megaphone className="w-8 h-8 text-red-500" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Campaigns</h3>
             <p className="text-gray-600 mb-4">There was an error loading your campaigns.</p>
-            <Button 
+            <Button
               onClick={() => refetchCampaigns()}
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
@@ -213,14 +234,14 @@ const Campaigns = () => {
         <div className='flex items-center justify-between mb-6'>
           <div className=''>
             <div className='flex items-center gap-1'>
-              <Target className="text-3xl font-bold text-red-400 mb-2" />
+                <Megaphone className="text-3xl font-bold text-red-400 mb-2" />
               <h1 className="text-xl font-bold text-gray-900 mb-2">Campaign Management</h1>
             </div>
             <p className='text-sm'>Manage and monitor your outreach campaigns</p>
           </div>
           <div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className='mr-2'
                 onClick={() => refetchCampaigns()}
                 disabled={campaignsLoading}
@@ -228,7 +249,7 @@ const Campaigns = () => {
                 <RefreshCcw className={`mr-2 h-4 w-4 ${campaignsLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-                <Button className='bg-red-400 hover:bg-red-500 text-white' onClick={() => router.push('/library/sdr/campaigns/create')}>
+              <Button className='bg-red-400 hover:bg-red-500 text-white' onClick={() => router.push('/library/sdr/campaigns/create')}>
               <Plus className='h-4 w-4' />
               Create Campagin
             </Button>
@@ -238,7 +259,7 @@ const Campaigns = () => {
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
           <div className='flex gap-x-2 rounded-lg border shadow-sm p-2'>
             <div className='bg-red-400 rounded-lg p-1 flex items-center justify-center'>
-              <Target className="text-6xl font-bold text-white" />
+                <Megaphone className="text-6xl font-bold text-white" />
             </div>
             <div>
                 <p className="text-sm font-semibold">
@@ -274,7 +295,7 @@ const Campaigns = () => {
         {/* Campaign Table */}
         <div className="bg-white rounded-lg border border-gray-200 mb-8">
           <div className="p-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-10">
               <h2 className="text-lg font-semibold text-gray-900">Campaigns</h2>
               <div className="flex items-center space-x-4">
                 <SearchInput
@@ -289,11 +310,10 @@ const Campaigns = () => {
           <Table>
             <TableHeader className='px-2'>
               <TableRow>
-                <TableHead className="font-semibold">Name</TableHead>
-                <TableHead className="font-semibold">Services</TableHead>
-                <TableHead className="font-semibold">Schedule</TableHead>
-                <TableHead className="font-semibold">Status</TableHead>
-                {/* <TableHead className="w-12"></TableHead> */}
+                  <TableHead className="font-semibold w-1/4 text-center">Name</TableHead>
+                  <TableHead className="font-semibold w-1/4 text-center">Services</TableHead>
+                  <TableHead className="font-semibold w-1/4 text-center">Schedule</TableHead>
+                  <TableHead className="font-semibold w-1/4 text-center">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -313,53 +333,102 @@ const Campaigns = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  campaigns.map((campaign) => (
-                <TableRow key={campaign.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/library/sdr/campaigns/${campaign.id}`)}>
-                  <TableCell>
+                  visibleCampaigns.map((campaign) => (
+                    <TableRow key={campaign.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/library/sdr/campaigns/${campaign.id}`)}>
+                      <TableCell className='w-1/4 text-center'>
                     <div>
                       <div className="font-medium text-gray-900">{campaign.name}</div>
                           <div className="text-sm text-gray-500">
-                            {new Date(campaign.created_at).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric' 
+                            {new Date(campaign.created_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric'
                             })}
                           </div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                      <TableCell className='w-1/4 text-center'>
                     <div className="space-y-1">
-                      {campaign.integrations?.apps && campaign.integrations.apps.length > 0 ? (
-                        campaign.integrations.apps.map((app, index) => (
-                        <div key={index} className="flex items-center text-sm text-gray-600">
+                          {campaign.integrations?.apps && campaign.integrations.apps.length > 0 ? (
+                            campaign.integrations.apps.map((app, index) => (
+                              <div key={index} className="flex items-center justify-center text-sm text-gray-600">
                           <Mail className="h-3 w-3 mr-2 text-orange-500" />
-                            {app}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Mail className="h-3 w-3 mr-2 text-gray-400" />
-                          No integrations
-                        </div>
-                      )}
+                                {app}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="flex items-center justify-center text-sm text-gray-500">
+                              <Mail className="h-3 w-3 mr-2 text-gray-400" />
+                              No integrations
+                            </div>
+                          )}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center text-sm text-gray-600">
+                      <TableCell className='w-1/4 text-center'>
+                        <div className="flex items-center justify-center text-sm text-gray-600">
                       <Clock className="h-3 w-3 mr-2 text-orange-500" />
-                      {campaign.schedules?.START} - {campaign.schedules?.END}
+                          {campaign.schedules?.START} - {campaign.schedules?.END}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor('READY')}>
-                      READY
+                      <TableCell className='w-1/4 text-center'>
+                        <Badge className={getStatusColor('READY')}>
+                          READY
                     </Badge>
                   </TableCell>
                 </TableRow>
                   ))
                 )}
             </TableBody>
-          </Table>
-        </div>
+            </Table>
+          </div>
+
+          {/* Pagination Controls */}
+          {campaigns.length > campaignsPerPage && (
+            <div className="flex items-center justify-between bg-white rounded-lg border border-gray-200 p-4 mb-8">
+              <div className="text-sm text-gray-700">
+                Showing {startIndex + 1} to {Math.min(endIndex, campaigns.length)} of {campaigns.length} campaigns
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1"
+                >
+                  Previous
+                </Button>
+                
+                {/* Page Numbers */}
+                <div className="flex space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageClick(page)}
+                      className={`px-3 py-1 ${
+                        currentPage === page 
+                          ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
 
         {/* Campaign Calendar */}
           {campaignEvents.length > 0 && (

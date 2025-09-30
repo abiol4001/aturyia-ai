@@ -78,6 +78,13 @@ const SearchInput: React.FC<SearchInputProps> = ({
     clearErrors('query');
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onSearch(searchQuery || '');
+    }
+  };
+
   return (
     <div className={`relative ${className}`}>
       <div className="relative">
@@ -87,6 +94,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
           placeholder={placeholder}
           className={`pl-10 ${showButton ? 'pr-20' : 'pr-4'} ${errors.query ? 'border-red-500' : ''}`}
           onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           disabled={disabled || isSubmitting}
         />
         {showButton && (
