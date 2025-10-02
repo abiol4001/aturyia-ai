@@ -257,14 +257,14 @@ export interface MailLogFilters extends PaginationParams {
 }
 
 export interface MailLogStats {
-  totalEmails: number;
-  sentEmails: number;
+    totalEmails: number;
+    sentEmails: number;
   receivedEmails: number;
   openedEmails: number;
-  repliedEmails: number;
+    repliedEmails: number;
   bounceRate: number;
-  openRate: number;
-  replyRate: number;
+    openRate: number;
+    replyRate: number;
   averageResponseTime: number;
 }
 
@@ -494,4 +494,72 @@ export interface AnalyticsData {
   lead_analytics: LeadAnalytics;
   performance_metrics: PerformanceMetrics;
   charts_data: ChartsData;
+}
+
+// Integration Types
+export interface IntegrationRequest {
+  org_id: string;
+  requester_id: string;
+  agent_id: string;
+  service: string;
+  items: string[];
+  scopes: string[];
+}
+
+export interface IntegrationRequestResponse {
+  code: number;
+  message: string;
+  request_id?: string;
+  auth_url?: string; // OAuth URL returned when admin approves
+}
+
+export interface GmailStatusResponse {
+  code: number;
+  message: string;
+  data: {
+    integration_id: string;
+    external_account_id: string;
+    status: string;
+    has_access_token: boolean;
+    has_refresh_token: boolean;
+    expires_at: string;
+    scopes: string[];
+    capabilities: {
+      send: boolean;
+      read: boolean;
+    };
+  };
+}
+
+export interface GmailTestResponse {
+  code: number;
+  message: string;
+  data: {
+    gmail_tool_present: boolean;
+    tool_name: string;
+    has_access_token: boolean;
+    has_refresh_token: boolean;
+    has_client_id: boolean;
+    has_client_secret: boolean;
+  };
+}
+
+export interface GmailReauthResponse {
+  code: number;
+  message: string;
+  data: {
+    auth_url: string;
+    state: string;
+    instructions: string;
+  };
+}
+
+export interface IntegrationHealthResponse {
+  code: number;
+  message: string;
+  data: {
+    auth_url: string;
+    state: string;
+    instructions: string;
+  };
 }

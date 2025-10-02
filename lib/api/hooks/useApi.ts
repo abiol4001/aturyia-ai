@@ -11,7 +11,8 @@ import {
   Lead,
   MailLog,
   MailLogFilters,
-  Message
+  Message,
+  IntegrationRequest
 } from '../types';
 
 
@@ -530,5 +531,74 @@ export const useChat = (apiService: typeof sdrService) => {
     sendMessage,
     clearMessages,
   };
+};
+
+// ==================== INTEGRATION HOOKS ====================
+
+/**
+ * Hook for requesting integration
+ */
+export const useRequestIntegration = () => {
+  return useMutation({
+    mutationFn: ({ service, request }: { service: string; request: IntegrationRequest }) =>
+      sdrService.requestIntegration(service, request),
+    onSuccess: (data) => {
+      console.log('✅ Integration request successful:', data);
+    },
+    onError: (error) => {
+      console.error('❌ Integration request failed:', error);
+    },
+  });
+};
+
+/**
+ * Hook for getting Gmail status
+ */
+export const useGmailStatus = () => {
+  return useQuery({
+    queryKey: ['gmail-status'],
+    queryFn: () => sdrService.getGmailStatus(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+/**
+ * Hook for testing Gmail tool
+ */
+export const useTestGmailTool = () => {
+  return useQuery({
+    queryKey: ['gmail-test'],
+    queryFn: () => sdrService.testGmailTool(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+/**
+ * Hook for getting Gmail re-authentication URL
+ */
+export const useGmailReauth = () => {
+  return useMutation({
+    mutationFn: () => sdrService.getGmailReauth(),
+    onSuccess: (data) => {
+      console.log('✅ Gmail re-auth URL generated:', data);
+    },
+    onError: (error) => {
+      console.error('❌ Gmail re-auth failed:', error);
+    },
+  });
+};
+
+/**
+ * Hook for checking integration health
+ */
+export const useIntegrationHealth = () => {
+  return useQuery({
+    queryKey: ['integration-health'],
+    queryFn: () => sdrService.getIntegrationHealth(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
 };
 

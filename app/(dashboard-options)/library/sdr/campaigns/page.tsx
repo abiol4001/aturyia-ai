@@ -359,7 +359,7 @@ const Campaigns = () => {
                             <div className="flex items-center justify-center text-sm text-gray-500">
                               <Mail className="h-3 w-3 mr-2 text-gray-400" />
                               No integrations
-                            </div>
+                        </div>
                           )}
                     </div>
                   </TableCell>
@@ -378,8 +378,8 @@ const Campaigns = () => {
                   ))
                 )}
             </TableBody>
-            </Table>
-          </div>
+          </Table>
+        </div>
 
           {/* Pagination Controls */}
           {campaigns.length > campaignsPerPage && (

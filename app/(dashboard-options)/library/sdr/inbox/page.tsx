@@ -55,7 +55,7 @@ const Inbox = () => {
   const allMailLogs = mailLogsResponse?.data || [];
   
   // Client-side filtering for search
-  const filteredMailLogs = allMailLogs.filter(mailLog => {
+  const mailLogs = allMailLogs.filter(mailLog => {
     if (!searchQuery || searchQuery.trim() === '') return true;
     
     const searchLower = searchQuery.toLowerCase();
@@ -66,8 +66,6 @@ const Inbox = () => {
       (mailLog.campaign_name && mailLog.campaign_name.toLowerCase().includes(searchLower))
     );
   });
-  
-  const mailLogs = filteredMailLogs;
 
   // Debug logging
   console.log('🔍 Mail Logs API Response:', mailLogsResponse);
@@ -134,32 +132,32 @@ const Inbox = () => {
     }
   };
 
+
   // Filter emails based on active tab
   const getFilteredEmails = () => {
-    const emails = mailLogs.map(transformMailLogToEmail);
-    
     switch (activeTab) {
       case 'inbox':
-        // Inbox shows incoming emails (from leads)
-        return emails.filter(email => 
-          email.sender !== 'You'
-        );
+        // Inbox shows incoming emails (direction: "incoming")
+        return mailLogs.filter(log => log.direction === 'incoming');
       case 'approval':
         // Approvals show outgoing emails with pending status
-        return emails.filter(email => 
-          email.sender === 'You'
+        return mailLogs.filter(log => 
+          log.direction === 'outgoing' && log.status === 'pending'
         );
       case 'sent':
-        // Sent shows completed/delivered emails
-        return emails.filter(email => 
-          email.sender === 'You' && email.unread === 0
+        // Sent shows outgoing emails that are not pending
+        return mailLogs.filter(log => 
+          log.direction === 'outgoing' && log.status !== 'pending'
         );
       default:
-        return emails;
+        return mailLogs;
     }
   };
 
-  const inboxEmails = getFilteredEmails();
+  const filteredMailLogs = getFilteredEmails();
+  const inboxEmails = filteredMailLogs.map(transformMailLogToEmail);
+  
+  // Get sent emails separately
   const sentEmails = mailLogs
     .filter(log => log.direction === 'outgoing' && log.status !== 'pending')
     .map(transformMailLogToEmail);

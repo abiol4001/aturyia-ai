@@ -18,7 +18,13 @@ import {
   CampaignDetails,
   LeadApprovalRequest,
   AnalyticsData,
-  ChatResponse
+  ChatResponse,
+  IntegrationRequest,
+  IntegrationRequestResponse,
+  GmailStatusResponse,
+  GmailTestResponse,
+  GmailReauthResponse,
+  IntegrationHealthResponse
 } from '../types';
 import {
   getUserId,
@@ -945,6 +951,101 @@ export const sdrService = {
       return response;
     } catch (error) {
       console.error('Error fetching analytics data:', error);
+      throw error;
+    }
+  },
+
+  // ==================== INTEGRATION ENDPOINTS ====================
+
+  /**
+   * User Integration Request
+   * POST /users/{agent}/integration_requests/{service}
+   */
+  requestIntegration: async (service: string, request: IntegrationRequest): Promise<ApiResponse<IntegrationRequestResponse>> => {
+    const url = `/users/${request.agent_id}/integration_requests/${service}`;
+
+    try {
+      const response = await api.post<ApiResponse<IntegrationRequestResponse>>(url, request);
+      console.log('🔍 requestIntegration API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error requesting integration:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Gmail Integration Status Check
+   * GET /users/{user_id}/agents/sdr/{agent_id}/gmail-status
+   */
+  getGmailStatus: async (): Promise<ApiResponse<GmailStatusResponse>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/gmail-status`;
+
+    try {
+      const response = await api.get<ApiResponse<GmailStatusResponse>>(url);
+      console.log('🔍 getGmailStatus API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching Gmail status:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Gmail Tool Testing
+   * GET /users/{user_id}/agents/sdr/{agent_id}/test-gmail-tool
+   */
+  testGmailTool: async (): Promise<ApiResponse<GmailTestResponse>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/test-gmail-tool`;
+
+    try {
+      const response = await api.get<ApiResponse<GmailTestResponse>>(url);
+      console.log('🔍 testGmailTool API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error testing Gmail tool:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Gmail Re-authentication
+   * GET /users/{user_id}/agents/sdr/{agent_id}/gmail-reauth
+   */
+  getGmailReauth: async (): Promise<ApiResponse<GmailReauthResponse>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/gmail-reauth`;
+
+    try {
+      const response = await api.get<ApiResponse<GmailReauthResponse>>(url);
+      console.log('🔍 getGmailReauth API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error getting Gmail re-auth URL:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Integration Health Check
+   * GET /users/{user_id}/agents/sdr/{agent_id}/gmail-integration-health
+   */
+  getIntegrationHealth: async (): Promise<ApiResponse<IntegrationHealthResponse>> => {
+    const userId = getUserId();
+    const agentId = getSdrAgentId();
+    const url = `/users/${userId}/agents/sdr/${agentId}/gmail-integration-health`;
+
+    try {
+      const response = await api.get<ApiResponse<IntegrationHealthResponse>>(url);
+      console.log('🔍 getIntegrationHealth API Response:', response);
+      return response;
+    } catch (error) {
+      console.error('Error checking integration health:', error);
       throw error;
     }
   }

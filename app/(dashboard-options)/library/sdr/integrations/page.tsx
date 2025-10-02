@@ -5,7 +5,20 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SearchInput from '@/components/ui/search-input';
-import { Settings, BarChart3, Users, TrendingUp, Database, MessageSquare } from 'lucide-react';
+import { Settings, BarChart3, Users, TrendingUp } from 'lucide-react';
+import { useGmailStatus } from '@/lib/api/hooks/useApi';
+import { 
+  useRequestIntegration, 
+  useServiceCountByCategory,
+  useServiceMetrics,
+  useRefreshAllServices
+} from '@/lib/api/hooks/useIntegrations';
+import { IntegrationRequest } from '@/lib/api/types';
+import { getUserId, getOrgId, getSdrAgentId } from '@/lib/api/utils/storage';
+import { 
+  getAllIntegrations, 
+  getAllCategories
+} from '@/lib/api/services/serviceRegistry';
 
 interface Integration {
   id: string;
@@ -18,72 +31,31 @@ interface Integration {
   hasEmailField: boolean;
   emailValue?: string;
   showEmailField?: boolean;
+  service?: string; // Add service field for API mapping
 }
 
 const IntegrationsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All Integrations');
-  const [integrations, setIntegrations] = useState<Integration[]>([
-    {
-      id: '1',
-      name: 'Google Analytics',
-      description: 'Track website traffic and user behavior',
-      category: 'Marketing',
-      icon: <BarChart3 className="h-5 w-5" />,
-      iconColor: 'bg-blue-500',
-      isActive: true,
-      hasEmailField: true,
-      emailValue: '',
-      showEmailField: false
-    },
-    {
-      id: '2',
-      name: 'PowerBI',
-      description: 'Business analytics and data visualization',
-      category: 'Finance',
-      icon: <Database className="h-5 w-5" />,
-      iconColor: 'bg-yellow-500',
-      isActive: true,
-      hasEmailField: true,
-      emailValue: '',
-      showEmailField: false
-    },
-    {
-      id: '3',
-      name: 'HubSpot',
-      description: 'CRM platform for marketing and sales',
-      category: 'Sales',
-      icon: <MessageSquare className="h-5 w-5" />,
-      iconColor: 'bg-orange-400',
-      isActive: true,
-      hasEmailField: true,
-      emailValue: '',
-      showEmailField: false
-    },
-    {
-      id: '4',
-      name: 'Gmail',
-      description: 'Email integration for communication',
-      category: 'Sales',
-      icon: <MessageSquare className="h-5 w-5" />,
-      iconColor: 'bg-orange-400',
-      isActive: true,
-      hasEmailField: true,
-      emailValue: '',
-      showEmailField: false
-    }
-  ]);
+  
+  // Integration request hooks
+  const requestIntegration = useRequestIntegration();
+  
+  // Service management hooks
+  const { data: serviceCount } = useServiceCountByCategory();
+  const { data: metrics } = useServiceMetrics();
+  const { mutateAsync: refreshAllServices, isPending: refreshPending } = useRefreshAllServices();
+  
+  // Gmail specific hooks (existing)
+  const { data: gmailStatus } = useGmailStatus();
+  
+  // Get integrations from service registry
+  const [integrations, setIntegrations] = useState<Integration[]>(() => {
+    return getAllIntegrations();
+  });
 
-  const categories = [
-    'All Integrations',
-    'Email',
-    'CRM',
-    'Social Media',
-    'Marketing',
-    'Sales Tools',
-    'Productivity',
-    'Finance'
-  ];
+  // Get categories from service registry
+  const allCategories = getAllCategories();
 
   const handleToggleIntegration = (id: string) => {
     setIntegrations(prev => prev.map(integration => 
@@ -101,29 +73,59 @@ const IntegrationsPage = () => {
     ));
   };
 
-  const handleSave = (id: string) => {
-    // Handle save logic here
-    console.log('Saving integration:', id);
+  const handleSave = async (id: string) => {
+    try {
+      const integration = integrations.find(int => int.id === id);
+      if (!integration || !integration.emailValue || !integration.service) {
+        console.error('Integration, email value, or service not found');
+        return;
+      }
+
+      // Create integration request payload
+      const request: IntegrationRequest = {
+        org_id: getOrgId(),
+        requester_id: getUserId(),
+        agent_id: getSdrAgentId(),
+        service: integration.service,
+        items: [integration.emailValue],
+        scopes: integration.service === 'gmail' ? ['gmail.readonly', 'gmail.send'] : ['read', 'write']
+      };
+
+      console.log('🚀 Requesting integration:', request);
+      
+      await requestIntegration.mutateAsync({ service: integration.service, request });
+      
+      // Hide email field after successful request
+      setIntegrations(prev => prev.map(int => 
+        int.id === id 
+          ? { ...int, showEmailField: false, emailValue: '' }
+          : int
+      ));
+      
+      console.log('✅ Integration request sent successfully');
+    } catch (error) {
+      console.error('❌ Integration request failed:', error);
+    }
   };
 
-  const handleCancel = (id: string) => {
-    // Hide email field when cancel is clicked
+  const handleToggleEmailField = (id: string) => {
     setIntegrations(prev => prev.map(integration => 
       integration.id === id 
-        ? { ...integration, showEmailField: false }
+        ? { ...integration, showEmailField: !integration.showEmailField }
         : integration
     ));
   };
 
-  const handleConfigure = (id: string) => {
-    // Show email field when configure is clicked
-    setIntegrations(prev => prev.map(integration => 
-      integration.id === id 
-        ? { ...integration, showEmailField: true }
-        : integration
-    ));
+  const handleRefreshAll = async () => {
+    try {
+      await refreshAllServices();
+      console.log('✅ All services refreshed');
+    } catch (error) {
+      console.error('❌ Failed to refresh services:', error);
+    }
   };
 
+  // Filter integrations based on search and category
   const filteredIntegrations = integrations.filter(integration => {
     const matchesSearch = integration.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          integration.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -131,161 +133,181 @@ const IntegrationsPage = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const activeIntegrations = integrations.filter(integration => integration.isActive).length;
-  const totalIntegrations = integrations.length;
-  const utilization = Math.round((activeIntegrations / totalIntegrations) * 100);
-
   return (
-    <DashboardLayout agentType="sdr">
-      <div className="px-6 py-4 space-y-8">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <DashboardLayout>
+      <div className="h-full overflow-y-auto pb-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
-            <p className="text-gray-600 mt-2">Connect with your favorite apps and services</p>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Integrations</h1>
+            <p className="text-sm text-gray-600">Connect your favorite tools and services</p>
           </div>
-          <SearchInput
-            placeholder="Search integrations..."
-            onSearch={setSearchQuery}
-            className="w-full md:w-80"
-          />
-        </div>
-
-        {/* Category Navigation */}
-        <div className="flex flex-wrap gap-4 border-b border-gray-200 pb-4">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
-              className={`px-1 text-sm font-medium transition-colors ${
-                activeCategory === category
-                  ? 'text-orange-500 border-b-2 border-orange-500'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
+          <Button 
+            onClick={handleRefreshAll}
+            disabled={refreshPending}
+            className="flex items-center gap-2 w-full sm:w-auto"
+          >
+            <Settings className="w-4 h-4" />
+            {refreshPending ? 'Refreshing...' : 'Refresh All'}
+          </Button>
         </div>
 
         {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-3 flex items-center gap-4">
-            <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-              <BarChart3 className="h-6 w-6 text-white" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="flex gap-x-2 rounded-lg border shadow-sm p-2">
+            <div className="bg-blue-500 rounded-lg p-1 flex items-center justify-center">
+              <BarChart3 className="text-6xl font-bold text-white" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-900">{activeIntegrations}</div>
-              <div className="text-sm text-gray-600">Active Integrations</div>
+              <p className="text-sm font-semibold">
+                {gmailStatus?.data?.data?.status === 'connected' ? 1 : 0}
+              </p>
+              <p className="text-xs">Active Integrations</p>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg border border-gray-200 p-3 flex items-center gap-4">
-            <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-              <Users className="h-6 w-6 text-white" />
+          <div className="flex gap-x-2 rounded-lg border shadow-sm p-2">
+            <div className="bg-green-500 rounded-lg p-1 flex items-center justify-center">
+              <Users className="text-6xl font-bold text-white" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-900">{totalIntegrations}</div>
-              <div className="text-sm text-gray-600">Total Integrations</div>
+              <p className="text-sm font-semibold">
+                {metrics?.totalServices || 0}
+              </p>
+              <p className="text-xs">Total Integrations</p>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg border border-gray-200 p-3 flex items-center gap-4">
-            <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-white" />
+          <div className="flex gap-x-2 rounded-lg border shadow-sm p-2">
+            <div className="bg-purple-500 rounded-lg p-1 flex items-center justify-center">
+              <TrendingUp className="text-6xl font-bold text-white" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-900">{utilization}%</div>
-              <div className="text-sm text-gray-600">Utilization</div>
+              <p className="text-sm font-semibold">75%</p>
+              <p className="text-xs">Utilization</p>
             </div>
           </div>
         </div>
 
-        {/* Integration Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Search and Category Filter */}
+        <div className="bg-white rounded-lg border border-gray-200 mb-8 max-w-6xl">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Available Integrations</h2>
+              <div className="flex items-center space-x-4">
+                <SearchInput
+                  placeholder="Search integrations..."
+                  onSearch={setSearchQuery}
+                  className="w-64"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4">
+            <div className="flex flex-wrap gap-2 overflow-x-auto">
+              {allCategories.map((category) => (
+                <Button
+                  key={category}
+                  variant={activeCategory === category ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveCategory(category)}
+                  className="whitespace-nowrap text-xs"
+                >
+                  {category}
+                  {serviceCount && (
+                    <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                      {category === 'All Integrations' 
+                        ? Object.values(serviceCount).reduce((sum, count) => sum + count, 0)
+                        : serviceCount[category.toLowerCase() as keyof typeof serviceCount] || 0
+                      }
+                    </span>
+                  )}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Integrations Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredIntegrations.map((integration) => (
-            <div key={integration.id} className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
-              {/* Header */}
-              <div className="flex items-start justify-between">
+            <div key={integration.id} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 ${integration.iconColor} rounded-lg flex items-center justify-center`}>
-                    <span className="text-white">{integration.icon}</span>
+                  <div className={`p-2 rounded-lg ${integration.iconColor}`}>
+                    <span className="text-white text-lg">{integration.icon}</span>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">{integration.name}</h3>
                     <p className="text-sm text-gray-600">{integration.description}</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleToggleIntegration(integration.id)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
-                    integration.isActive ? 'bg-orange-500' : 'bg-gray-200'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      integration.isActive ? 'translate-x-4' : 'translate-x-1'
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleToggleIntegration(integration.id)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      integration.isActive ? 'bg-blue-600' : 'bg-gray-200'
                     }`}
-                  />
-                </button>
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        integration.isActive ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
 
-              {/* Email Field */}
-              {integration.showEmailField && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Enter email address:</label>
-                  <Input
-                    placeholder="Enter email address"
-                    value={integration.emailValue || ''}
-                    onChange={(e) => handleEmailChange(integration.id, e.target.value)}
-                    className="w-full"
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleSave(integration.id)}
-                      className="bg-orange-500 hover:bg-orange-600 text-white"
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleCancel(integration.id)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Footer */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <span className="px-3 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+              <div className="mb-3">
+                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
                   {integration.category}
                 </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-orange-500 border-orange-500 hover:bg-orange-50"
-                  onClick={() => handleConfigure(integration.id)}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Configure
-                </Button>
               </div>
+
+              {integration.hasEmailField && (
+                <div className="space-y-2">
+                  {integration.showEmailField ? (
+                    <div className="space-y-2">
+                      <Input
+                        type="email"
+                        placeholder="Enter email address"
+                        value={integration.emailValue || ''}
+                        onChange={(e) => handleEmailChange(integration.id, e.target.value)}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleSave(integration.id)}
+                          disabled={!integration.emailValue}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleToggleEmailField(integration.id)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleToggleEmailField(integration.id)}
+                      className="w-full"
+                    >
+                      Configure
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
-
-        {/* Empty State */}
-        {filteredIntegrations.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              <Settings className="h-12 w-12 mx-auto" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No integrations found</h3>
-            <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );

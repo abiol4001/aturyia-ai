@@ -2,10 +2,11 @@
 
 import React, { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Filter, Mail, Linkedin, Check, X, ChevronDown, RefreshCcw } from 'lucide-react';
+import { Filter, Mail, Linkedin, Check, X, ChevronDown, RefreshCcw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLeads, useApproveLeads, useRejectLeads } from '@/lib/api/hooks/useApi';
 import { LeadFilters } from '@/lib/api/types';
 import SearchInput from '@/components/ui/search-input';
@@ -17,6 +18,14 @@ const Leads = () => {
     status: 'pending' // Only show pending leads
   });
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Loading modal state
+  const [loadingModal, setLoadingModal] = useState({
+    isOpen: false,
+    type: '', // 'approve' or 'reject'
+    count: 0,
+    leadNames: [] as string[]
+  });
 
   // Fetch leads and stats from API
   const { 
@@ -56,12 +65,27 @@ const Leads = () => {
     const leadToApprove = leads.find(lead => lead.lead_id === leadId);
     if (!leadToApprove) return;
 
+    // Show loading modal
+    setLoadingModal({
+      isOpen: true,
+      type: 'approve',
+      count: 1,
+      leadNames: [leadToApprove.name]
+    });
+
     try {
       await approveLeadsMutation.mutateAsync([leadToApprove]);
       // Remove from selected leads if it was selected
       setSelectedLeads(prev => prev.filter(id => id !== leadId));
+      
+      // Close modal after successful approval
+      setTimeout(() => {
+        setLoadingModal(prev => ({ ...prev, isOpen: false }));
+      }, 1500);
     } catch (error) {
       console.error('Error approving lead:', error);
+      // Close modal on error
+      setLoadingModal(prev => ({ ...prev, isOpen: false }));
     }
   };
 
@@ -71,12 +95,27 @@ const Leads = () => {
 
     const leadsToApprove = leads.filter(lead => selectedLeads.includes(lead.lead_id));
     
+    // Show loading modal
+    setLoadingModal({
+      isOpen: true,
+      type: 'approve',
+      count: leadsToApprove.length,
+      leadNames: leadsToApprove.map(lead => lead.name)
+    });
+    
     try {
       await approveLeadsMutation.mutateAsync(leadsToApprove);
       setSelectedLeads([]);
       setSelectAll(false);
+      
+      // Close modal after successful approval
+      setTimeout(() => {
+        setLoadingModal(prev => ({ ...prev, isOpen: false }));
+      }, 1500);
     } catch (error) {
       console.error('Error approving leads:', error);
+      // Close modal on error
+      setLoadingModal(prev => ({ ...prev, isOpen: false }));
     }
   };
 
@@ -85,12 +124,27 @@ const Leads = () => {
     const leadToReject = leads.find(lead => lead.lead_id === leadId);
     if (!leadToReject) return;
 
+    // Show loading modal
+    setLoadingModal({
+      isOpen: true,
+      type: 'reject',
+      count: 1,
+      leadNames: [leadToReject.name]
+    });
+
     try {
       await rejectLeadsMutation.mutateAsync([leadToReject]);
       // Remove from selected leads if it was selected
       setSelectedLeads(prev => prev.filter(id => id !== leadId));
+      
+      // Close modal after successful rejection
+      setTimeout(() => {
+        setLoadingModal(prev => ({ ...prev, isOpen: false }));
+      }, 1500);
     } catch (error) {
       console.error('Error rejecting lead:', error);
+      // Close modal on error
+      setLoadingModal(prev => ({ ...prev, isOpen: false }));
     }
   };
 
@@ -100,18 +154,29 @@ const Leads = () => {
 
     const leadsToReject = leads.filter(lead => selectedLeads.includes(lead.lead_id));
     
+    // Show loading modal
+    setLoadingModal({
+      isOpen: true,
+      type: 'reject',
+      count: leadsToReject.length,
+      leadNames: leadsToReject.map(lead => lead.name)
+    });
+    
     try {
       await rejectLeadsMutation.mutateAsync(leadsToReject);
       setSelectedLeads([]);
       setSelectAll(false);
+      
+      // Close modal after successful rejection
+      setTimeout(() => {
+        setLoadingModal(prev => ({ ...prev, isOpen: false }));
+      }, 1500);
     } catch (error) {
       console.error('Error rejecting leads:', error);
+      // Close modal on error
+      setLoadingModal(prev => ({ ...prev, isOpen: false }));
     }
   };
-
-  // Debug logging
-  // console.log('🔍 Leads API Response:', leadsResponse);
-  // console.log('📊 Leads Data:', leads);
 
   const handleSelectAll = (checked: boolean) => {
     setSelectAll(checked);
@@ -387,6 +452,55 @@ const Leads = () => {
           </Button>
         </div>
       </div>
+
+      {/* Loading Modal */}
+      <Dialog open={loadingModal.isOpen} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-orange-500" />
+              {loadingModal.type === 'approve' ? 'Approving Lead' : 'Rejecting Lead'}
+              {loadingModal.count > 1 && 's'}
+            </DialogTitle>
+            <DialogDescription>
+              {loadingModal.type === 'approve' 
+                ? `Approving ${loadingModal.count} lead${loadingModal.count > 1 ? 's' : ''}...`
+                : `Rejecting ${loadingModal.count} lead${loadingModal.count > 1 ? 's' : ''}...`
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                Processing your request...
+              </div>
+              
+              {loadingModal.leadNames.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-700">
+                    {loadingModal.count === 1 ? 'Lead:' : 'Leads:'}
+                  </p>
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {loadingModal.leadNames.map((name, index) => (
+                      <div key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-semibold">
+                            {getInitials(name)}
+                          </span>
+                        </div>
+                        {name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+        
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
